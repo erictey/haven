@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { isElectron, windowClose, windowIsMaximized, windowMinimize, windowMaximize } from '../lib/electron';
+import { BrandMark } from './BrandMark';
 
 export function TitleBar() {
   const [maximized, setMaximized] = useState(false);
@@ -17,9 +18,10 @@ export function TitleBar() {
   if (!isElectron) return null;
 
   return (
-      <div className="title-bar">
+    <div className="title-bar">
       <div className="title-bar-drag">
-        <span className="title-bar-label">Haven</span>
+        <BrandMark variant="compact" />
+        <span className="title-bar-label">Private weekly observatory</span>
       </div>
       <div className="title-bar-controls">
         <button

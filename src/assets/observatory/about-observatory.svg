@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 340" fill="none">
+  <defs>
+    <linearGradient id="aboutBg" x1="64" x2="536" y1="16" y2="322" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081823"/>
+      <stop offset=".6" stop-color="#0B2130"/>
+      <stop offset="1" stop-color="#07121C"/>
+    </linearGradient>
+    <radialGradient id="aboutGlow" cx="0" cy="0" r="1" gradientTransform="matrix(0 104 -212 0 450 94)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DFFEFF" stop-opacity=".44"/>
+      <stop offset=".46" stop-color="#8FC8FF" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#7CF4DC" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="620" height="340" rx="28" fill="url(#aboutBg)"/>
+  <ellipse cx="450" cy="94" fill="url(#aboutGlow)" rx="212" ry="104"/>
+  <path d="M72 238c102-90 220-130 392-128" opacity=".78" stroke="#8FC8FF" stroke-linecap="round" stroke-width="4.2"/>
+  <path d="M92 282c112-72 230-100 426-95" stroke="#7CF4DC" stroke-linecap="round" stroke-width="5"/>
+  <path d="M96 292h422" opacity=".18" stroke="#DFFEFF"/>
+  <circle cx="448" cy="98" r="14" fill="#DFFEFF"/>
+  <circle cx="448" cy="98" r="40" opacity=".22" stroke="#DFFEFF"/>
+  <circle cx="448" cy="98" r="82" opacity=".11" stroke="#DFFEFF"/>
+  <path d="M118 152c48-28 92-38 152-40" opacity=".24" stroke="#DFFEFF" stroke-width="1.6"/>
+  <path d="M184 184c28-10 59-13 96-10" opacity=".2" stroke="#DFFEFF" stroke-width="1.6"/>
+  <circle cx="136" cy="124" r="3" fill="#7CF4DC"/>
+  <circle cx="190" cy="110" r="2.5" fill="#DFFEFF"/>
+</svg>

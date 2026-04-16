@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" fill="none">
+  <defs>
+    <linearGradient id="workflowBg" x1="70" x2="470" y1="18" y2="328" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081823"/>
+      <stop offset=".6" stop-color="#0A1F2D"/>
+      <stop offset="1" stop-color="#08131D"/>
+    </linearGradient>
+    <radialGradient id="workflowGlow" cx="0" cy="0" r="1" gradientTransform="matrix(0 118 -192 0 396 98)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DFFEFF" stop-opacity=".42"/>
+      <stop offset=".44" stop-color="#8FC8FF" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#7CF4DC" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="560" height="360" rx="28" fill="url(#workflowBg)"/>
+  <ellipse cx="394" cy="98" fill="url(#workflowGlow)" rx="192" ry="118"/>
+  <path d="M72 238c88-92 198-133 352-132" opacity=".78" stroke="#8FC8FF" stroke-linecap="round" stroke-width="4"/>
+  <path d="M102 284c102-74 206-105 362-100" stroke="#7CF4DC" stroke-linecap="round" stroke-width="5"/>
+  <path d="M96 296h370" opacity=".16" stroke="#DFFEFF"/>
+  <rect x="92" y="74" width="112" height="72" rx="18" fill="rgba(255,255,255,0.03)" stroke="rgba(223,254,255,0.14)"/>
+  <rect x="224" y="136" width="132" height="86" rx="20" fill="rgba(255,255,255,0.03)" stroke="rgba(223,254,255,0.14)"/>
+  <rect x="376" y="192" width="92" height="64" rx="18" fill="rgba(255,255,255,0.03)" stroke="rgba(223,254,255,0.14)"/>
+  <path d="M204 122c18 6 30 12 42 26" opacity=".4" stroke="#DFFEFF" stroke-width="1.8"/>
+  <path d="M356 202c12 0 21 4 30 12" opacity=".4" stroke="#DFFEFF" stroke-width="1.8"/>
+  <circle cx="430" cy="104" r="12" fill="#DFFEFF"/>
+  <circle cx="430" cy="104" r="36" opacity=".18" stroke="#DFFEFF"/>
+  <circle cx="150" cy="102" r="3" fill="#7CF4DC"/>
+</svg>

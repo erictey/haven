@@ -18,6 +18,7 @@ export function MotivationalMessage({ message }: Props) {
       className={`panel message-card ${isVisible ? 'animate-scale-in' : ''}`}
       style={{ opacity: isVisible ? 1 : 0 }}
     >
+      <div className="message-card-glow" aria-hidden="true" />
       <div className="section-header">
         <div>
           <p className="eyebrow">Reminder</p>

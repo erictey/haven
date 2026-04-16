@@ -1,0 +1,115 @@
+<h2>Choose The Visual Direction</h2>
+<p class="subtitle">
+  Haven already feels calm, reflective, and glassy. Which direction should we push the custom
+  assets and animation system toward for the next design pass?
+</p>
+
+<div class="section">
+  <div class="label">Recommended: build on the current emerald atmosphere, but make it more distinctive</div>
+  <div class="cards">
+    <div class="card" data-choice="bioluminescent-sanctuary" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:
+        radial-gradient(circle at 25% 25%, rgba(178,255,220,0.28), transparent 22%),
+        radial-gradient(circle at 72% 68%, rgba(72,255,186,0.18), transparent 26%),
+        linear-gradient(160deg, #04110d, #0c221b 58%, #071510); position: relative; padding: 20px;">
+        <div style="position:absolute; inset:18px; border-radius:18px; border:1px solid rgba(214,255,232,0.18); background:rgba(5,18,13,0.52); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);"></div>
+        <div style="position:absolute; top:26px; left:26px; width:94px; height:94px; border-radius:50%; background:
+          radial-gradient(circle at 35% 30%, rgba(245,255,250,0.55), rgba(113,255,188,0.18) 40%, rgba(80,214,154,0.06) 65%, transparent 78%);
+          border:1px solid rgba(210,255,228,0.18);"></div>
+        <div style="position:absolute; right:28px; top:36px; display:flex; gap:8px;">
+          <span style="width:34px; height:10px; border-radius:999px; background:rgba(187,255,221,0.16); display:block;"></span>
+          <span style="width:52px; height:10px; border-radius:999px; background:rgba(255,255,255,0.08); display:block;"></span>
+        </div>
+        <div style="position:absolute; left:28px; right:28px; bottom:28px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+          <div style="height:92px; border-radius:18px; background:linear-gradient(180deg, rgba(15,40,29,0.92), rgba(7,19,15,0.88)); border:1px solid rgba(168,248,207,0.12);"></div>
+          <div style="height:92px; border-radius:18px; background:linear-gradient(180deg, rgba(16,42,31,0.92), rgba(8,20,16,0.88)); border:1px solid rgba(168,248,207,0.12);"></div>
+          <div style="height:92px; border-radius:18px; background:linear-gradient(180deg, rgba(14,37,28,0.92), rgba(7,19,15,0.88)); border:1px solid rgba(168,248,207,0.12);"></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>Bioluminescent Sanctuary</h3>
+        <p>Deep emerald glass, luminous orbs, soft underwater drift, and custom organic symbols.</p>
+        <p style="margin-top:8px; color:var(--accent); font-weight:600;">Best if we want richer ambient assets without losing the current mood.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="editorial-ritual" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:
+        linear-gradient(165deg, #111513 0%, #1a201c 52%, #121714 100%);
+        position: relative; padding: 20px;">
+        <div style="position:absolute; inset:18px; border-radius:18px; border:1px solid rgba(223,237,225,0.16); background:
+          linear-gradient(180deg, rgba(25,31,28,0.94), rgba(15,19,17,0.94));"></div>
+        <div style="position:absolute; left:30px; right:30px; top:32px; height:1px; background:linear-gradient(90deg, rgba(238,246,239,0.0), rgba(238,246,239,0.35), rgba(238,246,239,0.0));"></div>
+        <div style="position:absolute; left:34px; top:44px; color:#e8efe9; font-size:28px; letter-spacing:0.08em; font-weight:700;">HAVEN</div>
+        <div style="position:absolute; left:34px; top:84px; width:140px; height:8px; border-radius:999px; background:rgba(228,236,229,0.16);"></div>
+        <div style="position:absolute; left:34px; top:104px; width:190px; height:8px; border-radius:999px; background:rgba(228,236,229,0.10);"></div>
+        <div style="position:absolute; right:40px; top:52px; width:112px; height:112px; border-radius:20px; border:1px solid rgba(228,236,229,0.14); background:
+          linear-gradient(135deg, rgba(233,241,235,0.08), rgba(255,255,255,0.02));
+          display:flex; align-items:center; justify-content:center; color:#dce7df; font-size:34px;">+</div>
+        <div style="position:absolute; left:34px; right:34px; bottom:30px; display:grid; grid-template-columns:1.2fr 0.8fr; gap:14px;">
+          <div style="height:84px; border-radius:16px; background:rgba(226,236,228,0.05); border:1px solid rgba(226,236,228,0.1);"></div>
+          <div style="height:84px; border-radius:16px; background:rgba(226,236,228,0.03); border:1px solid rgba(226,236,228,0.1);"></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>Editorial Ritual</h3>
+        <p>Sharper typography, restrained illustration, line-work icons, and quieter ceremonial motion.</p>
+        <p style="margin-top:8px;">Best if we want Haven to feel more premium, mature, and intentional than playful.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="inner-observatory" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:
+        radial-gradient(circle at 70% 22%, rgba(131,255,205,0.12), transparent 20%),
+        linear-gradient(160deg, #081312 0%, #0d1719 52%, #050a0c 100%);
+        position: relative; padding: 20px;">
+        <div style="position:absolute; inset:18px; border-radius:18px; border:1px solid rgba(185,241,222,0.14); background:
+          linear-gradient(180deg, rgba(9,19,21,0.94), rgba(7,12,15,0.94));"></div>
+        <div style="position:absolute; right:28px; top:28px; width:116px; height:116px; border-radius:50%; border:1px solid rgba(185,241,222,0.16);"></div>
+        <div style="position:absolute; right:44px; top:44px; width:84px; height:84px; border-radius:50%; border:1px solid rgba(185,241,222,0.10);"></div>
+        <div style="position:absolute; right:60px; top:60px; width:52px; height:52px; border-radius:50%; background:radial-gradient(circle, rgba(128,255,203,0.22), rgba(128,255,203,0.02) 60%, transparent 72%);"></div>
+        <div style="position:absolute; left:34px; top:36px; display:flex; flex-direction:column; gap:10px;">
+          <span style="width:126px; height:10px; border-radius:999px; background:rgba(214,255,233,0.18); display:block;"></span>
+          <span style="width:180px; height:10px; border-radius:999px; background:rgba(214,255,233,0.10); display:block;"></span>
+        </div>
+        <div style="position:absolute; left:34px; right:34px; bottom:30px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+          <div style="height:98px; border-radius:16px; background:linear-gradient(180deg, rgba(11,23,26,0.95), rgba(8,14,17,0.92)); border:1px solid rgba(182,240,221,0.11);"></div>
+          <div style="height:98px; border-radius:16px; background:linear-gradient(180deg, rgba(11,23,26,0.95), rgba(8,14,17,0.92)); border:1px solid rgba(182,240,221,0.11);"></div>
+          <div style="height:98px; border-radius:16px; background:linear-gradient(180deg, rgba(11,23,26,0.95), rgba(8,14,17,0.92)); border:1px solid rgba(182,240,221,0.11);"></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>Inner Observatory</h3>
+        <p>Celestial grids, directional arcs, particle trails, and more structured guidance cues.</p>
+        <p style="margin-top:8px;">Best if we want the app to feel more like a personal navigation instrument than a sanctuary.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">This choice will shape</div>
+  <div class="options" data-multiselect>
+    <div class="option">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>Custom asset family</h3>
+        <p>App icon, category emblems, hero motifs, empty-state graphics, and decorative background elements.</p>
+      </div>
+    </div>
+    <div class="option">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>Motion language</h3>
+        <p>Whether the app breathes, drifts, shimmers, rotates, pulses, or snaps between states.</p>
+      </div>
+    </div>
+    <div class="option">
+      <div class="letter">3</div>
+      <div class="content">
+        <h3>Interface polish</h3>
+        <p>Title bar treatment, focus cards, dashboard widgets, transitions, and background depth.</p>
+      </div>
+    </div>
+  </div>
+</div>

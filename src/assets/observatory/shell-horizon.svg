@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" fill="none">
+  <defs>
+    <linearGradient id="shellBg" x1="80" x2="580" y1="32" y2="366" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081823"/>
+      <stop offset=".55" stop-color="#0d2231"/>
+      <stop offset="1" stop-color="#07111b"/>
+    </linearGradient>
+    <radialGradient id="shellGlow" cx="0" cy="0" r="1" gradientTransform="matrix(0 124 -258 0 508 114)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9ed2ff" stop-opacity=".42"/>
+      <stop offset=".52" stop-color="#7cf4dc" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#7cf4dc" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="720" height="420" rx="30" fill="url(#shellBg)"/>
+  <ellipse cx="518" cy="118" fill="url(#shellGlow)" rx="258" ry="124"/>
+  <path d="M90 264c110-98 252-144 432-140" opacity=".86" stroke="#8FC8FF" stroke-linecap="round" stroke-width="5"/>
+  <path d="M120 316c128-82 255-119 456-114" opacity=".95" stroke="#7CF4DC" stroke-linecap="round" stroke-width="6"/>
+  <path d="M140 232c74-40 132-55 224-56" opacity=".28" stroke="#DFFEFF" stroke-linecap="round" stroke-width="2"/>
+  <path d="M118 352h484" opacity=".22" stroke="#DFFEFF"/>
+  <path d="M170 352c40-56 102-92 182-102 72-9 141 3 210 39" opacity=".14" stroke="#DFFEFF" stroke-width="1.5"/>
+  <circle cx="514" cy="126" r="15" fill="#DFFEFF"/>
+  <circle cx="514" cy="126" r="38" opacity=".28" stroke="#DFFEFF"/>
+  <circle cx="514" cy="126" r="72" opacity=".12" stroke="#DFFEFF"/>
+  <circle cx="164" cy="146" r="3" fill="#DFFEFF"/>
+  <circle cx="230" cy="116" r="2.5" fill="#7CF4DC"/>
+  <circle cx="282" cy="166" r="2.5" fill="#DFFEFF"/>
+</svg>

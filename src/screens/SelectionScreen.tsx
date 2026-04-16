@@ -3,6 +3,7 @@ import { CategoryList } from '../components/CategoryList';
 import { CoreValuesDisplay } from '../components/CoreValuesDisplay';
 import { FloatingBubble } from '../components/FloatingBubble';
 import { MissionCard } from '../components/MissionCard';
+import { ObservatoryScene } from '../components/ObservatoryScene';
 import { StepWizard, type StepConfig } from '../components/StepWizard';
 import { useAppContext } from '../context/AppContext';
 import {
@@ -67,6 +68,9 @@ export function SelectionScreen() {
       case 0:
         return (
           <div className="step-greeting">
+            <div className="step-greeting-scene">
+              <ObservatoryScene scene="workflow" />
+            </div>
             <h2 className="greeting-title text-reveal">Fresh Start</h2>
             <p className="greeting-sub">
               Pick one focus from each area for this week. No pressure — just intentions you'd like to hold.
@@ -88,6 +92,7 @@ export function SelectionScreen() {
         return (
           <div className="step-section">
             <CategoryList
+              category="build"
               description="What skill, habit, or capacity would you like to actively grow this week?"
               eligibleIds={eligibleItems.build.map((i) => i.id)}
               error={errors.build}
@@ -124,6 +129,7 @@ export function SelectionScreen() {
         return (
           <div className="step-section">
             <CategoryList
+              category="shape"
               description="What part of your life or environment would you like to gently improve over time?"
               eligibleIds={eligibleItems.shape.map((i) => i.id)}
               error={errors.shape}
@@ -160,6 +166,7 @@ export function SelectionScreen() {
         return (
           <div className="step-section">
             <CategoryList
+              category="workWith"
               description="What's something tough or uncomfortable that you'd like to sit with more gracefully this week?"
               eligibleIds={eligibleItems.workWith.map((i) => i.id)}
               error={errors.workWith}
@@ -258,6 +265,9 @@ export function SelectionScreen() {
         return (
           <div className="step-section stack-lg">
             <div className="step-greeting" style={{ padding: '16px 0' }}>
+              <div className="step-greeting-scene">
+                <ObservatoryScene scene="dashboard" />
+              </div>
               <h2 className="greeting-title" style={{ fontSize: '2rem' }}>Your Intentions</h2>
               <p className="greeting-sub" style={{ opacity: 1, animation: 'none' }}>Here's what you're leaning into this week. Feel good about these?</p>
             </div>

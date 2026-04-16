@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FloatingBubble } from '../components/FloatingBubble';
 import { MissionCard } from '../components/MissionCard';
+import { ObservatoryScene } from '../components/ObservatoryScene';
 import { ReflectionPrompts } from '../components/ReflectionPrompts';
 import { StepWizard, type StepConfig } from '../components/StepWizard';
 import { useAppContext } from '../context/AppContext';
@@ -41,6 +42,9 @@ export function ReflectionScreen() {
       case 0:
         return (
           <div className="step-greeting">
+            <div className="step-greeting-scene">
+              <ObservatoryScene scene="reflection" />
+            </div>
             <h2 className="greeting-title text-reveal">Time to Reflect</h2>
             <p className="greeting-sub">
               Your week wrapped up on{' '}
@@ -102,6 +106,9 @@ export function ReflectionScreen() {
         return (
           <div className="step-section">
             <section className="panel stack-md animate-scale-in">
+              <div className="step-greeting-scene step-greeting-scene-panel">
+                <ObservatoryScene scene="reflection" />
+              </div>
               <div className="section-header">
                 <div>
                   <p className="eyebrow">Your Thoughts</p>

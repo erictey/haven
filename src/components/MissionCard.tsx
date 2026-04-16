@@ -1,4 +1,6 @@
 import { CATEGORY_LABELS } from '../lib/types';
+import { CATEGORY_VISUALS } from '../lib/visuals';
+import { CategoryEmblem } from './CategoryEmblem';
 
 type Props = {
   title: string;
@@ -8,15 +10,9 @@ type Props = {
   index?: number;
 };
 
-const categoryIcons: Record<string, string> = {
-  build: '\u2726',
-  shape: '\u25CE',
-  workWith: '\u2661',
-};
-
 export function MissionCard({ title, text, caption, category, index }: Props) {
-  const icon = category ? categoryIcons[category] : null;
   const label = category ? CATEGORY_LABELS[category] : null;
+  const visual = category ? CATEGORY_VISUALS[category] : null;
 
   return (
     <section 
@@ -30,19 +26,20 @@ export function MissionCard({ title, text, caption, category, index }: Props) {
       <div className="mission-card-topline">
         <div className="mission-card-heading">
           <p className="eyebrow">{title}</p>
-          {label ? <span className="mission-card-label">{label}</span> : null}
+          {label && visual ? (
+            <span className="mission-card-label">
+              {label} · {visual.orbitName}
+            </span>
+          ) : null}
         </div>
-        {icon && (
-          <div className="mission-card-icon" title={label || ''}>
-            {icon}
-          </div>
-        )}
+        {category ? <CategoryEmblem category={category} className="mission-card-icon" decorative size="sm" /> : null}
       </div>
       <div className="mission-card-divider" aria-hidden="true" />
       <div className="mission-card-body">
         <p className="mission-text">{text}</p>
       </div>
       {caption ? <p className="card-caption">{caption}</p> : null}
+      {visual ? <p className="mission-card-orbit">{visual.descriptor}</p> : null}
     </section>
   );
 }

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 340" fill="none">
+  <defs>
+    <linearGradient id="reflectionBg" x1="54" x2="484" y1="16" y2="322" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081823"/>
+      <stop offset=".52" stop-color="#0A1E2B"/>
+      <stop offset="1" stop-color="#07111A"/>
+    </linearGradient>
+    <radialGradient id="reflectionGlow" cx="0" cy="0" r="1" gradientTransform="matrix(0 112 -188 0 406 116)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8FC8FF" stop-opacity=".34"/>
+      <stop offset=".5" stop-color="#DFFEFF" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#7CF4DC" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="580" height="340" rx="28" fill="url(#reflectionBg)"/>
+  <ellipse cx="406" cy="116" fill="url(#reflectionGlow)" rx="188" ry="112"/>
+  <path d="M64 228c82-80 190-120 334-118" opacity=".78" stroke="#8FC8FF" stroke-linecap="round" stroke-width="4"/>
+  <path d="M88 274c104-64 204-90 384-88" stroke="#7CF4DC" stroke-linecap="round" stroke-width="5"/>
+  <path d="M90 286h392" opacity=".15" stroke="#DFFEFF"/>
+  <path d="M144 286c42-44 102-70 186-72 59-2 117 11 164 40" opacity=".12" stroke="#DFFEFF" stroke-width="1.8"/>
+  <circle cx="406" cy="120" r="12" fill="#DFFEFF"/>
+  <circle cx="406" cy="120" r="30" opacity=".22" stroke="#DFFEFF"/>
+  <circle cx="406" cy="120" r="68" opacity=".12" stroke="#DFFEFF"/>
+  <circle cx="132" cy="148" r="3" fill="#7CF4DC"/>
+  <circle cx="176" cy="126" r="2.5" fill="#DFFEFF"/>
+</svg>

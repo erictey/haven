@@ -1,11 +1,14 @@
 import { startTransition, useEffect, useState } from 'react';
-import { AmbientBubbles } from './components/AmbientBubbles';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AutostartToggle } from './components/AutostartToggle';
+import { BrandMark } from './components/BrandMark';
 import { CloseToTrayToggle } from './components/CloseToTrayToggle';
+import { ObservatoryBackdrop } from './components/ObservatoryBackdrop';
+import { ObservatoryScene } from './components/ObservatoryScene';
 import { ScreenTransition } from './components/ScreenTransition';
 import { TitleBar } from './components/TitleBar';
 import { appQuit, hasElectronApi } from './lib/electron';
+import { OBSERVATORY_THEME } from './lib/visuals';
 import type { AppState } from './lib/types';
 import { AboutScreen } from './screens/AboutScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
@@ -232,7 +235,7 @@ function NavButton({
             transform: 'translateX(-50%)',
             width: '60%',
             height: '3px',
-            background: 'rgba(255,255,255,0.3)',
+            background: 'linear-gradient(90deg, rgba(143,200,255,0.84), rgba(124,244,220,0.92))',
             borderRadius: '3px 3px 0 0',
           }}
           className="animate-scale-in"
@@ -274,19 +277,27 @@ function AppShell() {
   return (
     <div className="app-shell">
       <TitleBar />
-      <AmbientBubbles />
+      <ObservatoryBackdrop />
       <header 
         className={`app-header panel ${headerVisible ? 'animate-slide-up' : ''}`}
         style={{ opacity: headerVisible ? 1 : 0 }}
       >
-        <div className="brand-block">
-          <h1 className="app-logo">Haven</h1>
-          <p className="screen-copy">
-            Your space for gentle growth, one week at a time
-          </p>
+        <div className="app-header-inner">
+          <div className="brand-block app-header-copy">
+            <p className="eyebrow">{OBSERVATORY_THEME.descriptor}</p>
+            <BrandMark variant="hero" />
+            <p className="screen-copy">{OBSERVATORY_THEME.tagline}</p>
+            <div className="badge-row app-header-badges">
+              <span className="badge neutral observatory-chip">{OBSERVATORY_THEME.shellLabel}</span>
+              <span className={`badge state-pill state-${state}`}>{getStateLabel(state)}</span>
+            </div>
+          </div>
+
+          <div className="app-header-visual">
+            <ObservatoryScene scene="shell" />
+          </div>
         </div>
         <div className="header-controls">
-          <span className={`badge state-pill state-${state}`}>{getStateLabel(state)}</span>
           <nav className="action-row">
             <NavButton
               active={activeView === 'workflow'}

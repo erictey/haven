@@ -4,6 +4,8 @@ import {
   MODEL_DESCRIPTION,
   STOIC_INSPIRATION,
 } from '../lib/categoryModel';
+import { BrandMark } from '../components/BrandMark';
+import { ObservatoryScene } from '../components/ObservatoryScene';
 import { CATEGORY_ORDER } from '../lib/types';
 
 export function AboutScreen() {
@@ -11,7 +13,10 @@ export function AboutScreen() {
     <section className="screen stack-xl">
       <header className="panel hero-panel animate-slide-up">
         <p className="eyebrow">About Us</p>
-        <h2>Haven</h2>
+        <BrandMark variant="panel" />
+        <div className="about-hero-scene">
+          <ObservatoryScene scene="about" />
+        </div>
         <p className="screen-copy">
           {MODEL_BLURB} {MODEL_DESCRIPTION} Your data stays private on your device, so the app can
           feel more like a mirror than a performance.

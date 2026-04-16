@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { CategoryEmblem } from '../components/CategoryEmblem';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { EvidenceColumn } from '../components/EvidenceColumn';
 import { FloatingBubble } from '../components/FloatingBubble';
 import { MotivationalMessage } from '../components/MotivationalMessage';
+import { ObservatoryScene } from '../components/ObservatoryScene';
 import { useAppContext } from '../context/AppContext';
 import { CATEGORY_DETAILS } from '../lib/categoryModel';
+import { CATEGORY_VISUALS, OBSERVATORY_THEME } from '../lib/visuals';
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
@@ -74,6 +77,9 @@ export function DashboardScreen() {
         <div
           className={`step-greeting dash-greeting ${greetingPhase === 'exit' ? 'screen-exit' : ''}`}
         >
+          <div className="step-greeting-scene">
+            <ObservatoryScene scene="dashboard" />
+          </div>
           <h2 className="greeting-title greeting-fade-in">Welcome back</h2>
           <p className="greeting-sub">You're right where you need to be. One day at a time.</p>
         </div>
@@ -217,13 +223,19 @@ export function DashboardScreen() {
     <section className="screen">
       <div className="dashboard-layout">
         <header className="panel week-hero animate-slide-up" style={{ animationDelay: '0s' }}>
+          <div className="week-hero-art">
+            <ObservatoryScene scene="dashboard" />
+          </div>
           <div className="week-hero-row">
             <span className="badge state-pill state-active_week">This Week</span>
+            <span className="badge neutral observatory-chip">{OBSERVATORY_THEME.descriptor}</span>
           </div>
           <h2 className="week-hero-title">
             {formatDateRange(activeCycle?.startDate, activeCycle?.endDate)}
           </h2>
-          <p className="week-hero-sub">You're on your way — one day at a time.</p>
+          <p className="week-hero-sub">
+            Polar Horizon is tracking your week through effort, influence, and wise response.
+          </p>
           {coreValues.length > 0 ? (
             <div className="week-hero-values">
               <p className="eyebrow">Your Values</p>
@@ -274,8 +286,10 @@ export function DashboardScreen() {
                       type="button"
                     >
                       <p className="eyebrow">{mission.label}</p>
+                      <CategoryEmblem category={mission.category} decorative size="sm" />
                       <h3>{detail.cardTitle}</h3>
                       <p className="section-copy">{detail.cardSummary}</p>
+                      <p className="dashboard-bubble-note">{CATEGORY_VISUALS[mission.category].descriptor}</p>
                       <span className="dashboard-bubble-link">Open meaning</span>
                     </button>
                   </FloatingBubble>

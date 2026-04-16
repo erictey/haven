@@ -1,5 +1,6 @@
 import { CategoryList } from '../components/CategoryList';
 import { CoreValuesDisplay } from '../components/CoreValuesDisplay';
+import { ObservatoryScene } from '../components/ObservatoryScene';
 import { StepWizard, type StepConfig } from '../components/StepWizard';
 import { useAppContext } from '../context/AppContext';
 import { PRESET_CORE_VALUES, PRESET_MISSIONS } from '../lib/presets';
@@ -49,6 +50,9 @@ export function SetupScreen({ mode = 'setup' }: Props) {
       case 0:
         return (
           <div className="step-greeting">
+            <div className="step-greeting-scene">
+              <ObservatoryScene scene="workflow" />
+            </div>
             <h2 className="greeting-title">
               {mode === 'setup' ? 'Welcome to Haven' : 'Edit Your Focus Areas'}
             </h2>
@@ -81,6 +85,7 @@ export function SetupScreen({ mode = 'setup' }: Props) {
         return (
           <div className="step-section">
             <CategoryList
+              category="build"
               description="What would you like to actively grow through practice and attention?"
               items={buildItems}
               lockedItemIds={lockedItemIds}
@@ -101,6 +106,7 @@ export function SetupScreen({ mode = 'setup' }: Props) {
         return (
           <div className="step-section">
             <CategoryList
+              category="shape"
               description="What part of your life would you like to gently improve over time?"
               items={shapeItems}
               lockedItemIds={lockedItemIds}
@@ -121,6 +127,7 @@ export function SetupScreen({ mode = 'setup' }: Props) {
         return (
           <div className="step-section">
             <CategoryList
+              category="workWith"
               description="What's something difficult you'd like to meet with more steadiness and self-compassion?"
               items={workWithItems}
               lockedItemIds={lockedItemIds}
@@ -140,6 +147,9 @@ export function SetupScreen({ mode = 'setup' }: Props) {
       case 5:
         return (
           <div className="step-greeting">
+            <div className="step-greeting-scene">
+              <ObservatoryScene scene="dashboard" />
+            </div>
             <h2 className="greeting-title">
               {mode === 'setup' ? "You're all set!" : 'Looking good!'}
             </h2>

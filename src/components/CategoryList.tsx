@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from 'react';
-import type { MissionItem } from '../lib/types';
+import type { MissionCategory, MissionItem } from '../lib/types';
 import { normalizeOptionText } from '../lib/utils';
+import { CATEGORY_VISUALS } from '../lib/visuals';
+import { CategoryEmblem } from './CategoryEmblem';
 
 type Props = {
   title: string;
   description: string;
+  category?: MissionCategory;
   items: MissionItem[];
   mode?: 'edit' | 'select';
   selectedId?: string | null;
@@ -23,6 +26,7 @@ type Props = {
 export function CategoryList({
   title,
   description,
+  category,
   items,
   mode = 'edit',
   selectedId,
@@ -44,6 +48,7 @@ export function CategoryList({
   const [deleteError, setDeleteError] = useState('');
   const existingTexts = new Set(items.map((item) => normalizeOptionText(item.text)));
   const showPresets = mode === 'edit' && presets.length > 0 && !!onAdd;
+  const visual = category ? CATEGORY_VISUALS[category] : null;
 
   const handleAdd = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -95,7 +100,13 @@ export function CategoryList({
       <div className="section-header">
         <div>
           <p className="eyebrow">Mission Category</p>
-          <h3>{title}</h3>
+          <div className="section-heading-row">
+            {category ? <CategoryEmblem category={category} decorative size="sm" /> : null}
+            <div>
+              <h3>{title}</h3>
+              {visual ? <p className="section-copy category-orbit-label">{visual.orbitName}</p> : null}
+            </div>
+          </div>
         </div>
         <p className="section-copy">{description}</p>
       </div>

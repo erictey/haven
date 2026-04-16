@@ -2,8 +2,10 @@ import { startTransition, useEffect, useState } from 'react';
 import { AmbientBubbles } from './components/AmbientBubbles';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AutostartToggle } from './components/AutostartToggle';
+import { CloseToTrayToggle } from './components/CloseToTrayToggle';
 import { ScreenTransition } from './components/ScreenTransition';
 import { TitleBar } from './components/TitleBar';
+import { appQuit, hasElectronApi } from './lib/electron';
 import type { AppState } from './lib/types';
 import { AboutScreen } from './screens/AboutScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
@@ -68,6 +70,19 @@ function SettingsScreen() {
       <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <div className="section-header">
           <div>
+            <p className="eyebrow">Window</p>
+            <h3>Close Button Behavior</h3>
+          </div>
+          <p className="section-copy">
+            Choose whether clicking X hides Haven to the tray or exits the app completely.
+          </p>
+        </div>
+        <CloseToTrayToggle />
+      </section>
+
+      <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.15s' }}>
+        <div className="section-header">
+          <div>
             <p className="eyebrow">Startup</p>
             <h3>Windows Autostart</h3>
           </div>
@@ -79,6 +94,28 @@ function SettingsScreen() {
       </section>
 
       <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.2s' }}>
+        <div className="section-header">
+          <div>
+            <p className="eyebrow">Application</p>
+            <h3>Quit Application</h3>
+          </div>
+          <p className="section-copy">
+            Exit Haven completely instead of sending it to the tray.
+          </p>
+        </div>
+        <div className="action-row">
+          <button
+            className="button secondary"
+            disabled={!hasElectronApi()}
+            onClick={appQuit}
+            type="button"
+          >
+            Quit Application
+          </button>
+        </div>
+      </section>
+
+      <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.25s' }}>
         <div className="section-header">
           <div>
             <p className="eyebrow">Data</p>
@@ -95,7 +132,7 @@ function SettingsScreen() {
         </div>
       </section>
 
-      <section className="panel stack-md reset-panel animate-slide-up" style={{ animationDelay: '0.3s' }}>
+      <section className="panel stack-md reset-panel animate-slide-up" style={{ animationDelay: '0.35s' }}>
         <div className="section-header">
           <div>
             <p className="eyebrow danger-text">Danger Zone</p>

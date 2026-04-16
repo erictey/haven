@@ -5,10 +5,13 @@ declare global {
       minimize: () => Promise<void>;
       maximize: () => Promise<void>;
       close: () => Promise<void>;
+      quit: () => Promise<void>;
       isMaximized: () => Promise<boolean>;
       toggleFullscreen: () => Promise<void>;
       getAutostart: () => Promise<boolean>;
       setAutostart: (enabled: boolean) => Promise<boolean>;
+      getCloseToTray: () => Promise<boolean>;
+      setCloseToTray: (enabled: boolean) => Promise<boolean>;
     };
   }
 }
@@ -27,6 +30,14 @@ export function hasAutostartApi() {
   );
 }
 
+export function hasCloseToTrayApi() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.electronAPI?.getCloseToTray === 'function' &&
+    typeof window.electronAPI?.setCloseToTray === 'function'
+  );
+}
+
 export function windowMinimize() {
   window.electronAPI?.minimize();
 }
@@ -37,6 +48,10 @@ export function windowMaximize() {
 
 export function windowClose() {
   window.electronAPI?.close();
+}
+
+export function appQuit() {
+  window.electronAPI?.quit();
 }
 
 export async function windowIsMaximized() {
@@ -53,4 +68,12 @@ export async function getAutostart() {
 
 export async function setAutostart(enabled: boolean) {
   return (await window.electronAPI?.setAutostart(enabled)) ?? false;
+}
+
+export async function getCloseToTray() {
+  return (await window.electronAPI?.getCloseToTray()) ?? false;
+}
+
+export async function setCloseToTray(enabled: boolean) {
+  return (await window.electronAPI?.setCloseToTray(enabled)) ?? false;
 }

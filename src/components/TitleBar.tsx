@@ -35,7 +35,7 @@ export function TitleBar() {
         <button
           className="title-bar-btn"
           onClick={() => { windowMaximize(); setTimeout(() => windowIsMaximized().then(setMaximized), 100); }}
-          title={maximized ? 'Restore' : 'Maximize'}
+          title={maximized ? 'Restore' : 'Expand'}
           type="button"
         >
           {maximized ? (

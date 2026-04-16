@@ -172,7 +172,7 @@ export function DashboardScreen() {
                 <p className="eyebrow">Journal</p>
                 <h3 id={modalTitleId}>Your Journal</h3>
                 <p className="section-copy">
-                  Capture evidence without turning the dashboard into one long scroll.
+                  Capture the moments you want to remember as your week unfolds.
                 </p>
               </div>
               <button
@@ -295,7 +295,7 @@ export function DashboardScreen() {
               <p className="eyebrow">Journal</p>
               <h3>Your Journal</h3>
               <p className="section-copy">
-                Keep the dashboard light, then open your notes when you're ready to capture more.
+                A place to capture moments, notes, and evidence from your week.
               </p>
               <div className="dashboard-bubble-meta">
                 {CATEGORY_ORDER.map((category) => (

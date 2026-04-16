@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { EvidenceColumn } from '../components/EvidenceColumn';
 import { FloatingBubble } from '../components/FloatingBubble';
@@ -108,6 +109,109 @@ export function DashboardScreen() {
     : journalMissionText;
   const modalTitleId =
     modalState?.type === 'info' ? `${modalState.category}-meaning-title` : 'journal-modal-title';
+  const modalContent = modalState ? (
+    <div
+      className="dashboard-modal-backdrop animate-fade-in"
+      onClick={() => setModalState(null)}
+      role="presentation"
+    >
+      <div
+        aria-labelledby={modalTitleId}
+        aria-modal="true"
+        className="panel dashboard-modal-card animate-scale-in"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        {activeInfo && selectedInfoMission ? (
+          <>
+            <div className="dashboard-modal-header">
+              <div className="stack-md">
+                <p className="eyebrow">{activeInfo.title}</p>
+                <h3 id={modalTitleId}>{activeInfo.definition}</h3>
+                <p className="section-copy">
+                  {activeInfo.meaning}
+                </p>
+              </div>
+              <button
+                className="button ghost small dashboard-modal-close"
+                onClick={() => setModalState(null)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="dashboard-modal-content">
+              <section className="dashboard-modal-panel stack-md dashboard-focus-panel">
+                <p className="eyebrow">This week</p>
+                <p className="mission-text">{selectedInfoMission.text}</p>
+                <p className="section-copy">{selectedInfoMission.intention}</p>
+              </section>
+
+              <div className="dashboard-modal-grid">
+                <section className="dashboard-modal-panel stack-md">
+                  <p className="eyebrow">What belongs here</p>
+                  <ul className="dashboard-modal-list">
+                    {activeInfo.examples.map((example) => (
+                      <li key={example}>{example}</li>
+                    ))}
+                  </ul>
+                </section>
+
+                <section className="dashboard-modal-panel stack-md">
+                  <p className="eyebrow">Helpful question</p>
+                  <p className="mission-text">{activeInfo.guidingQuestion}</p>
+                </section>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="dashboard-modal-header">
+              <div className="stack-md">
+                <p className="eyebrow">Journal</p>
+                <h3 id={modalTitleId}>Your Journal</h3>
+                <p className="section-copy">
+                  Capture evidence without turning the dashboard into one long scroll.
+                </p>
+              </div>
+              <button
+                className="button ghost small dashboard-modal-close"
+                onClick={() => setModalState(null)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="journal-tab-row">
+              {CATEGORY_ORDER.map((category) => (
+                <button
+                  className={`journal-tab ${journalCategory === category ? 'is-active' : ''}`}
+                  key={category}
+                  onClick={() => setJournalCategory(category)}
+                  type="button"
+                >
+                  <span>{CATEGORY_LABELS[category]}</span>
+                  <span className="journal-tab-count">{evidence[category].length}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="journal-modal-body">
+              <EvidenceColumn
+                entries={evidence[journalCategory]}
+                missionText={journalMissionSummary}
+                onAdd={(payload) => addEvidence(journalCategory, payload)}
+                onDelete={(evidenceId) => deleteEvidence(journalCategory, evidenceId)}
+                title={CATEGORY_LABELS[journalCategory]}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <section className="screen">
@@ -212,110 +316,9 @@ export function DashboardScreen() {
           </div>
         </aside>
       </div>
-
-      {modalState ? (
-        <div
-          className="dashboard-modal-backdrop animate-fade-in"
-          onClick={() => setModalState(null)}
-          role="presentation"
-        >
-          <div
-            aria-labelledby={modalTitleId}
-            aria-modal="true"
-            className="panel dashboard-modal-card animate-scale-in"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-          >
-            {activeInfo && selectedInfoMission ? (
-              <>
-                <div className="dashboard-modal-header">
-                  <div className="stack-md">
-                    <p className="eyebrow">{activeInfo.title}</p>
-                    <h3 id={modalTitleId}>{activeInfo.definition}</h3>
-                    <p className="section-copy">
-                      {activeInfo.meaning}
-                    </p>
-                  </div>
-                  <button
-                    className="button ghost small dashboard-modal-close"
-                    onClick={() => setModalState(null)}
-                    type="button"
-                  >
-                    Close
-                  </button>
-                </div>
-
-                <div className="dashboard-modal-content">
-                  <section className="dashboard-modal-panel stack-md dashboard-focus-panel">
-                    <p className="eyebrow">This week</p>
-                    <p className="mission-text">{selectedInfoMission.text}</p>
-                    <p className="section-copy">{selectedInfoMission.intention}</p>
-                  </section>
-
-                  <div className="dashboard-modal-grid">
-                    <section className="dashboard-modal-panel stack-md">
-                      <p className="eyebrow">What belongs here</p>
-                      <ul className="dashboard-modal-list">
-                        {activeInfo.examples.map((example) => (
-                          <li key={example}>{example}</li>
-                        ))}
-                      </ul>
-                    </section>
-
-                    <section className="dashboard-modal-panel stack-md">
-                      <p className="eyebrow">Helpful question</p>
-                      <p className="mission-text">{activeInfo.guidingQuestion}</p>
-                    </section>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="dashboard-modal-header">
-                  <div className="stack-md">
-                    <p className="eyebrow">Journal</p>
-                    <h3 id={modalTitleId}>Your Journal</h3>
-                    <p className="section-copy">
-                      Capture evidence without turning the dashboard into one long scroll.
-                    </p>
-                  </div>
-                  <button
-                    className="button ghost small dashboard-modal-close"
-                    onClick={() => setModalState(null)}
-                    type="button"
-                  >
-                    Close
-                  </button>
-                </div>
-
-                <div className="journal-tab-row">
-                  {CATEGORY_ORDER.map((category) => (
-                    <button
-                      className={`journal-tab ${journalCategory === category ? 'is-active' : ''}`}
-                      key={category}
-                      onClick={() => setJournalCategory(category)}
-                      type="button"
-                    >
-                      <span>{CATEGORY_LABELS[category]}</span>
-                      <span className="journal-tab-count">{evidence[category].length}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="journal-modal-body">
-                  <EvidenceColumn
-                    entries={evidence[journalCategory]}
-                    missionText={journalMissionSummary}
-                    onAdd={(payload) => addEvidence(journalCategory, payload)}
-                    onDelete={(evidenceId) => deleteEvidence(journalCategory, evidenceId)}
-                    title={CATEGORY_LABELS[journalCategory]}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      ) : null}
+      {modalContent && typeof document !== 'undefined'
+        ? createPortal(modalContent, document.body)
+        : null}
     </section>
   );
 }

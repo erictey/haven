@@ -3,9 +3,10 @@ Haven
 Haven is a private weekly reflection app for Windows.
 
 Quick start
-1. Run the installer from the release folder.
-2. Follow the on-screen setup steps.
-3. Launch Haven from the Start menu or desktop shortcut.
+1. Download the latest installer from [GitHub Releases](https://github.com/erictey/haven/releases/latest).
+2. Run the installer.
+3. Follow the on-screen setup steps.
+4. Launch Haven from the Start menu or desktop shortcut.
 
 What it does
 Haven helps you choose a weekly focus, add evidence as the week unfolds, and

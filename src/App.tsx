@@ -246,7 +246,7 @@ function NavButton({
 }
 
 function AppShell() {
-  const { canEditModel, state } = useAppContext();
+  const { canEditModel: canEditFramework, state } = useAppContext();
   const [view, setView] = useState<AppView>('workflow');
   const [headerVisible, setHeaderVisible] = useState(false);
 
@@ -257,16 +257,16 @@ function AppShell() {
   }, []);
 
   useEffect(() => {
-    if (view === 'edit' && !canEditModel) {
+    if (view === 'edit' && !canEditFramework) {
       setView('workflow');
     }
-  }, [canEditModel, view]);
+  }, [canEditFramework, view]);
 
   const changeView = (nextView: AppView) => {
     startTransition(() => setView(nextView));
   };
 
-  const activeView = view === 'edit' && !canEditModel ? 'workflow' : view;
+  const activeView = view === 'edit' && !canEditFramework ? 'workflow' : view;
   const workflowLabel = state === 'setup' ? 'Setup' : 'Dashboard';
 
   const getScreenKey = () => {
@@ -313,7 +313,7 @@ function AppShell() {
             </NavButton>
             <NavButton
               active={activeView === 'edit'}
-              disabled={!canEditModel}
+              disabled={!canEditFramework}
               onClick={() => changeView('edit')}
             >
               Edit

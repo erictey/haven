@@ -1,7 +1,7 @@
 import {
   CATEGORY_DETAILS,
-  MODEL_BLURB,
-  MODEL_DESCRIPTION,
+  FRAMEWORK_BLURB,
+  FRAMEWORK_DESCRIPTION,
   STOIC_INSPIRATION,
 } from '../lib/categoryModel';
 import { BrandMark } from '../components/BrandMark';
@@ -18,7 +18,7 @@ export function AboutScreen() {
           <ObservatoryScene scene="about" />
         </div>
         <p className="screen-copy">
-          {MODEL_BLURB} {MODEL_DESCRIPTION} Your data stays private on your device, so the app can
+          {FRAMEWORK_BLURB} {FRAMEWORK_DESCRIPTION} Your data stays private on your device, so the app can
           feel more like a mirror than a performance.
         </p>
       </header>
@@ -26,11 +26,11 @@ export function AboutScreen() {
       <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <div className="section-header">
           <div>
-            <p className="eyebrow">The Model</p>
+            <p className="eyebrow">The Framework</p>
             <h3>A way to reflect on real life</h3>
           </div>
           <p className="section-copy">
-            When life feels messy, this model helps sort experience into the parts you can build,
+            When life feels messy, this framework helps sort experience into the parts you can build,
             the parts you can shape, and the parts you need to work with wisely.
           </p>
         </div>

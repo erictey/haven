@@ -67,7 +67,7 @@ export function deriveAppState(data: AppData, nowIso: string): AppState {
   return 'completed_cycle';
 }
 
-export function canEditModel(state: AppState) {
+export function canEditFramework(state: AppState) {
   return state !== 'active_week' && state !== 'awaiting_reflection';
 }
 

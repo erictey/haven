@@ -11,7 +11,7 @@ import { getMessageForDate } from '../lib/messages';
 import { applySelectionToRotation, getEligibleMissionItems } from '../lib/rotation';
 import {
   canDeleteMissionItem as canDeleteMissionItemGuard,
-  canEditModel as canEditModelForState,
+  canEditFramework as canEditFrameworkForState,
   deriveAppState,
   getCycleDates,
   hasMinimumSetup,
@@ -419,7 +419,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ...data,
     nowIso,
     state,
-    canEditModel: canEditModelForState(state),
+    canEditModel: canEditFrameworkForState(state),
     eligibleItems,
     activeCycleItems,
     cycleMessage: getMessageForDate(nowIso),

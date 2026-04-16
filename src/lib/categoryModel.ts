@@ -43,11 +43,11 @@ export const CATEGORY_DETAILS: Record<MissionCategory, CategoryDetail> = {
   },
 };
 
-export const MODEL_BLURB =
-  'Haven is a private weekly reflection model for noticing what to build, what to shape, and what to work with in your life.';
+export const FRAMEWORK_BLURB =
+  'Haven is a private weekly reflection framework for noticing what to build, what to shape, and what to work with in your life.';
 
-export const MODEL_DESCRIPTION =
+export const FRAMEWORK_DESCRIPTION =
   'It helps you translate a messy week into three practical lanes: direct effort, steady influence, and wise response.';
 
 export const STOIC_INSPIRATION =
-  'The model is inspired by the Stoic dichotomy of control: learning to tell the difference between what is up to you, what you can influence, and what must be met with clarity and character.';
+  'This framework is inspired by the Stoic dichotomy of control: learning to tell the difference between what is up to you, what you can influence, and what must be met with clarity and character.';

@@ -1,6 +1,4 @@
-================================================================================
-HAVEN — Requirements & Installation Guide
-================================================================================
+HAVEN - Development Requirements
 
 SYSTEM REQUIREMENTS
 -------------------
@@ -18,103 +16,60 @@ RUNTIME REQUIREMENTS (development)
   Note: Electron (~41.x) is downloaded automatically by npm install.
   It requires no separate installation.
 
-================================================================================
-INSTALLATION — DEVELOPMENT / SOURCE
-================================================================================
+DEVELOPMENT SETUP
+-----------------
 
 1. GET THE SOURCE
-   --------------
    Clone or download the repository to a local folder:
 
      git clone <repo-url>
-     cd individualitymodel
+     cd haven
 
    Or extract the ZIP and open a terminal in the project folder.
 
 2. INSTALL DEPENDENCIES
-   ---------------------
+   Run:
+
      npm install
 
-   This downloads all packages listed in package.json including Electron,
-   React, Vite, TypeScript, and electron-builder (~300–500 MB first run).
+   This downloads Electron, React, Vite, TypeScript, and electron-builder.
 
 3. RUN IN DEVELOPMENT MODE
-   ------------------------
-   Opens a Vite dev server AND an Electron window with hot reload:
+   Opens a Vite dev server and an Electron window with hot reload:
 
      npm run electron:dev
 
-   The app window will appear automatically once the dev server is ready
-   (usually within 10–15 seconds).
+4. RUN WEB PREVIEW ONLY
+   Run:
 
-4. RUN WEB PREVIEW ONLY (no Electron)
-   ------------------------------------
      npm run dev
+
    Then open http://localhost:5173 in a browser.
 
-================================================================================
-BUILD — PRODUCTION INSTALLER
-================================================================================
+BUILDING THE INSTALLER
+----------------------
 
-1. BUILD THE DISTRIBUTABLE
-   ------------------------
-     npm run electron:build
+1. Build the distributable:
 
-   Output: release/  folder containing a Windows NSIS installer (.exe).
+     npm run build
 
-2. INSTALL ON WINDOWS
-   -------------------
-   Run the generated .exe in release/.
-   The installer allows choosing the installation directory.
-   A desktop shortcut and Start Menu entry are created automatically.
+   Output: release/ folder containing a Windows NSIS installer (.exe).
 
-================================================================================
-SCRIPTS REFERENCE
-================================================================================
+2. Web bundle only:
 
-  npm run dev              Vite dev server only (browser)
-  npm run build            TypeScript compile + Vite production build
-  npm run preview          Preview production build in browser
-  npm run electron:dev     Dev server + Electron window (hot reload)
-  npm run electron:build   Full production build + Windows installer
-  npm run electron:start   Start Electron against already-built dist/
+     npm run web:build
 
-================================================================================
-DEPENDENCIES SUMMARY
-================================================================================
-
-Runtime
-  react ^18.3.1
-  react-dom ^18.3.1
-
-Development / Build
-  electron ^41.2.1
-  electron-builder ^26.8.1
-  vite ^6.1.0
-  @vitejs/plugin-react ^4.3.4
-  typescript ^5.7.3
-  concurrently ^9.2.1
-  wait-on ^9.0.5
-  @types/react ^18.3.12
-  @types/react-dom ^18.3.1
-
-================================================================================
 TROUBLESHOOTING
-================================================================================
+---------------
 
   "electron not found" after npm install
       Run: npm install --save-dev electron
-      Or delete node_modules/ and package-lock.json, then re-run npm install.
 
   App window does not open in electron:dev
-      Vite may still be starting. Wait ~15 seconds. Check terminal for errors.
+      Vite may still be starting. Wait a few seconds and check the terminal.
 
   Port 5173 already in use
       Kill the process on that port or change the port in vite.config.ts.
 
   Windows Defender / SmartScreen blocks the installer
-      Expected for unsigned builds. Click "More info" → "Run anyway".
-      For production release, sign the executable via electron-builder's
-      certificateFile option in package.json.
-
-================================================================================
+      Expected for unsigned builds. Click "More info" then "Run anyway".

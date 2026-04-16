@@ -3,11 +3,15 @@
   "productName": "Haven",
   "private": true,
   "version": "0.1.0",
+  "description": "Private weekly reflection app.",
+  "author": "EricTey <erictey00@gmail.com>",
+  "license": "MIT",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run electron:build",
+    "web:build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --dev\"",
     "electron:build": "tsc && vite build && electron-builder",
@@ -16,6 +20,11 @@
   "build": {
     "appId": "com.tey.haven",
     "productName": "Haven",
+    "win": {
+      "signAndEditExecutable": false,
+      "target": "nsis",
+      "icon": "public/icon.png"
+    },
     "directories": {
       "output": "release"
     },
@@ -23,10 +32,6 @@
       "dist/**/*",
       "electron/**/*"
     ],
-    "win": {
-      "target": "nsis",
-      "icon": "public/icon.png"
-    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true

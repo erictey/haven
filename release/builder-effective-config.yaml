@@ -1,0 +1,17 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.tey.haven
+productName: Haven
+win:
+  signAndEditExecutable: false
+  target: nsis
+  icon: public/icon.png
+files:
+  - filter:
+      - dist/**/*
+      - electron/**/*
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+electronVersion: 41.2.1

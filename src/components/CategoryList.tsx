@@ -86,7 +86,7 @@ export function CategoryList({
   };
 
   return (
-    <section className="panel stack-lg">
+    <section className="panel stack-lg animate-slide-up">
       <div className="section-header">
         <div>
           <p className="eyebrow">Mission Category</p>
@@ -96,8 +96,8 @@ export function CategoryList({
       </div>
 
       {items.length > 0 ? (
-        <div className="item-list">
-          {items.map((item) => {
+        <div className="item-list stagger-in">
+          {items.map((item, index) => {
             const isEligible = mode === 'select' ? eligibleIds.includes(item.id) : true;
             const isLocked = lockedItemIds.includes(item.id);
             const isSelected = selectedId === item.id;
@@ -115,6 +115,8 @@ export function CategoryList({
                   .filter(Boolean)
                   .join(' ')}
                 key={item.id}
+                style={{ animationDelay: `${index * 0.05}s` }}
+                onClick={mode === 'select' && isEligible && !disabled ? () => onSelect?.(item.id) : undefined}
               >
                 <div className="item-card-main">
                   {isEditing ? (
@@ -134,7 +136,7 @@ export function CategoryList({
                   ) : isDeleting ? (
                     <div className="inline-confirm">
                       <p className="danger-text">Delete &quot;{item.text}&quot;?</p>
-                      {deleteError && <p className="field-error">{deleteError}</p>}
+                      {deleteError && <p className="field-error animate-shake">{deleteError}</p>}
                       <div className="inline-actions">
                         <button className="button danger small" onClick={confirmDelete} type="button">Yes, delete</button>
                         <button className="button ghost small" onClick={() => { setDeletingId(null); setDeleteError(''); }} type="button">Cancel</button>
@@ -145,9 +147,12 @@ export function CategoryList({
                       <p>{item.text}</p>
                       <div className="badge-row">
                         {mode === 'select' ? (
-                          <span className={`badge ${isEligible ? 'available' : 'used'}`}>
-                            {isEligible ? 'Available now' : 'Used this rotation'}
-                          </span>
+                          <>
+                            <span className="availability-dot" style={{ opacity: isEligible ? 1 : 0 }} />
+                            <span className={`badge ${isEligible ? 'available' : 'used'}`}>
+                              {isEligible ? 'Available now' : 'Used this rotation'}
+                            </span>
+                          </>
                         ) : null}
                         {mode === 'edit' ? (
                           <span className={`badge ${item.isActive ? 'available' : 'used'}`}>
@@ -164,7 +169,7 @@ export function CategoryList({
                   <button
                     className="button secondary"
                     disabled={!isEligible || disabled}
-                    onClick={() => onSelect?.(item.id)}
+                    onClick={(e) => { e.stopPropagation(); onSelect?.(item.id); }}
                     type="button"
                   >
                     {isSelected ? 'Selected' : 'Choose'}
@@ -199,12 +204,12 @@ export function CategoryList({
           })}
         </div>
       ) : (
-        <div className="empty-state">
+        <div className="empty-state animate-fade-in">
           <p>No missions here yet. Add at least one so the weekly cycle has something to pull from.</p>
         </div>
       )}
 
-      {error ? <p className="field-error">{error}</p> : null}
+      {error ? <p className="field-error animate-shake">{error}</p> : null}
 
       {mode === 'edit' ? (
         <form className="form-row" onSubmit={handleAdd}>

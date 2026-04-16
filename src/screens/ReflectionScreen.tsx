@@ -41,10 +41,14 @@ export function ReflectionScreen() {
       case 0:
         return (
           <div className="step-greeting">
-            <h2 className="greeting-title">Week Complete</h2>
+            <h2 className="greeting-title text-reveal">Week Complete</h2>
             <p className="greeting-sub">
               Cycle ended on{' '}
-              {activeCycle ? new Date(activeCycle.endDate).toLocaleDateString() : 'unknown date'}.
+              {activeCycle ? new Date(activeCycle.endDate).toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric'
+              }) : 'unknown date'}.
               Close the week before you start the next one.
             </p>
           </div>
@@ -58,23 +62,29 @@ export function ReflectionScreen() {
                 Your missions this week
               </h2>
             </div>
-            <div className="mission-grid">
+            <div className="mission-grid stagger-in">
               <FloatingBubble delay={0} intensity={0.5}>
                 <MissionCard
                   text={activeCycleItems.build?.text ?? 'No build mission.'}
                   title="Build"
+                  category="build"
+                  index={0}
                 />
               </FloatingBubble>
               <FloatingBubble delay={1} intensity={0.5}>
                 <MissionCard
                   text={activeCycleItems.shape?.text ?? 'No shape mission.'}
                   title="Shape"
+                  category="shape"
+                  index={1}
                 />
               </FloatingBubble>
               <FloatingBubble delay={2} intensity={0.5}>
                 <MissionCard
                   text={activeCycleItems.workWith?.text ?? 'No work with mission.'}
                   title="Work With"
+                  category="workWith"
+                  index={2}
                 />
               </FloatingBubble>
             </div>
@@ -83,7 +93,7 @@ export function ReflectionScreen() {
 
       case 2:
         return (
-          <div className="step-section">
+          <div className="step-section animate-slide-up">
             <ReflectionPrompts prompts={REFLECTION_PROMPTS} />
           </div>
         );
@@ -91,7 +101,7 @@ export function ReflectionScreen() {
       case 3:
         return (
           <div className="step-section">
-            <section className="panel stack-md">
+            <section className="panel stack-md animate-scale-in">
               <div className="section-header">
                 <div>
                   <p className="eyebrow">Your Notes</p>
@@ -107,8 +117,18 @@ export function ReflectionScreen() {
                 placeholder="What happened this week? What moved, stalled, or surprised you?"
                 rows={9}
                 value={text}
+                style={{ minHeight: '200px' }}
               />
-              {error && <p className="field-error">{error}</p>}
+              {error && <p className="field-error animate-shake">{error}</p>}
+              {text.trim().length > 0 && (
+                <p className="animate-fade-in" style={{ 
+                  color: 'var(--accent)', 
+                  fontSize: '0.85rem',
+                  textAlign: 'right'
+                }}>
+                  {text.trim().split(/\s+/).length} words
+                </p>
+              )}
             </section>
           </div>
         );

@@ -9,6 +9,8 @@ export function ScreenTransition({ children, transitionKey }: Props) {
   const [displayed, setDisplayed] = useState(children);
   const [phase, setPhase] = useState<'enter' | 'exit' | 'idle'>('enter');
   const prevKey = useRef(transitionKey);
+  const exitTimerRef = useRef<number | null>(null);
+  const enterTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (transitionKey === prevKey.current) {
@@ -19,18 +21,23 @@ export function ScreenTransition({ children, transitionKey }: Props) {
     prevKey.current = transitionKey;
     setPhase('exit');
 
-    const exitTimer = setTimeout(() => {
+    // Clear any existing timers
+    if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
+
+    exitTimerRef.current = window.setTimeout(() => {
       setDisplayed(children);
       setPhase('enter');
 
-      const enterTimer = setTimeout(() => {
+      enterTimerRef.current = window.setTimeout(() => {
         setPhase('idle');
-      }, 400);
+      }, 600); // Match the new longer enter animation
+    }, 350); // Match the new exit animation duration
 
-      return () => clearTimeout(enterTimer);
-    }, 250);
-
-    return () => clearTimeout(exitTimer);
+    return () => {
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
+    };
   }, [transitionKey, children]);
 
   const className = [

@@ -25,7 +25,7 @@ export function HistoryScreen() {
 
   return (
     <section className="screen stack-xl">
-      <header className="panel hero-panel animate-fade-in">
+      <header className="panel hero-panel animate-slide-up">
         <p className="eyebrow">History</p>
         <h2>Archived cycles and reflections</h2>
         <p className="screen-copy">
@@ -34,16 +34,27 @@ export function HistoryScreen() {
         </p>
       </header>
 
-      <section className="stack-lg">
+      <section className="stack-lg stagger-in">
         {history.length > 0 ? (
-          history.map((entry) => (
-            <article className="panel history-card" key={entry.id}>
+          history.map((entry, index) => (
+            <article 
+              className="panel history-card" 
+              key={entry.id}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <div className="section-header">
                 <div>
                   <p className="eyebrow">Cycle</p>
                   <h3>
-                    {new Date(entry.startDate).toLocaleDateString()} to{' '}
-                    {new Date(entry.endDate).toLocaleDateString()}
+                    {new Date(entry.startDate).toLocaleDateString(undefined, { 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })} to{' '}
+                    {new Date(entry.endDate).toLocaleDateString(undefined, { 
+                      month: 'short', 
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
                   </h3>
                 </div>
                 {deletingId === entry.id ? (
@@ -66,27 +77,34 @@ export function HistoryScreen() {
                 )}
               </div>
               <div className="mission-grid">
-                <MissionCard text={entry.buildText} title="Build" />
-                <MissionCard text={entry.shapeText} title="Shape" />
-                <MissionCard text={entry.workWithText} title="Work With" />
+                <MissionCard text={entry.buildText} title="Build" category="build" />
+                <MissionCard text={entry.shapeText} title="Shape" category="shape" />
+                <MissionCard text={entry.workWithText} title="Work With" category="workWith" />
               </div>
               <section className="reflection-note">
                 <p className="eyebrow">Reflection</p>
-                <p>{entry.reflection.text}</p>
+                <p className="mission-text">{entry.reflection.text}</p>
                 <p className="date-copy">
-                  Submitted {new Date(entry.reflection.submittedAt).toLocaleString()}
+                  Submitted {new Date(entry.reflection.submittedAt).toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                  })}
                 </p>
               </section>
             </article>
           ))
         ) : (
-          <div className="panel empty-state">
+          <div className="panel empty-state animate-fade-in">
             <p>No completed cycles yet. Reflections appear here after first week closes.</p>
           </div>
         )}
       </section>
 
-      <DataManagement historyCount={history.length} onClear={clearAllData} onExport={handleExport} />
+      <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        <DataManagement historyCount={history.length} onClear={clearAllData} onExport={handleExport} />
+      </div>
     </section>
   );
 }

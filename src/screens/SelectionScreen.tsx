@@ -43,7 +43,7 @@ export function SelectionScreen() {
       case 0:
         return (
           <div className="step-greeting">
-            <h2 className="greeting-title">New Week</h2>
+            <h2 className="greeting-title text-reveal">New Week</h2>
             <p className="greeting-sub">
               Choose one mission from each category. Once locked, you carry these for seven days.
             </p>
@@ -54,7 +54,7 @@ export function SelectionScreen() {
         return (
           <div className="step-section">
             <CoreValuesDisplay values={coreValues} />
-            <p className="step-hint-subtle">
+            <p className="step-hint-subtle animate-fade-in" style={{ animationDelay: '0.3s' }}>
               Keep these in mind as you choose. Values govern how you carry the mission.
             </p>
           </div>
@@ -73,6 +73,16 @@ export function SelectionScreen() {
               selectedId={selection.build}
               title="Build"
             />
+            {selection.build && (
+              <p className="animate-bounce-subtle" style={{ 
+                color: 'var(--accent)', 
+                fontWeight: 600, 
+                textAlign: 'center',
+                marginTop: '8px' 
+              }}>
+                Build mission selected
+              </p>
+            )}
           </div>
         );
 
@@ -89,6 +99,16 @@ export function SelectionScreen() {
               selectedId={selection.shape}
               title="Shape"
             />
+            {selection.shape && (
+              <p className="animate-bounce-subtle" style={{ 
+                color: 'var(--accent)', 
+                fontWeight: 600, 
+                textAlign: 'center',
+                marginTop: '8px' 
+              }}>
+                Shape mission selected
+              </p>
+            )}
           </div>
         );
 
@@ -105,6 +125,16 @@ export function SelectionScreen() {
               selectedId={selection.workWith}
               title="Work With"
             />
+            {selection.workWith && (
+              <p className="animate-bounce-subtle" style={{ 
+                color: 'var(--accent)', 
+                fontWeight: 600, 
+                textAlign: 'center',
+                marginTop: '8px' 
+              }}>
+                Work With mission selected
+              </p>
+            )}
           </div>
         );
 
@@ -115,18 +145,33 @@ export function SelectionScreen() {
               <h2 className="greeting-title" style={{ fontSize: '2rem' }}>Your Week</h2>
               <p className="greeting-sub">Review your selections. This locks for seven days.</p>
             </div>
-            <div className="mission-grid">
+            <div className="mission-grid stagger-in">
               <FloatingBubble delay={0} intensity={0.6}>
-                <MissionCard text={selectedBuild ?? 'Not selected'} title="Build" />
+                <MissionCard 
+                  text={selectedBuild ?? 'Not selected'} 
+                  title="Build" 
+                  category="build"
+                  index={0}
+                />
               </FloatingBubble>
               <FloatingBubble delay={1} intensity={0.6}>
-                <MissionCard text={selectedShape ?? 'Not selected'} title="Shape" />
+                <MissionCard 
+                  text={selectedShape ?? 'Not selected'} 
+                  title="Shape" 
+                  category="shape"
+                  index={1}
+                />
               </FloatingBubble>
               <FloatingBubble delay={2} intensity={0.6}>
-                <MissionCard text={selectedWorkWith ?? 'Not selected'} title="Work With" />
+                <MissionCard 
+                  text={selectedWorkWith ?? 'Not selected'} 
+                  title="Work With" 
+                  category="workWith"
+                  index={2}
+                />
               </FloatingBubble>
             </div>
-            {errors.form && <p className="field-error">{errors.form}</p>}
+            {errors.form && <p className="field-error animate-shake">{errors.form}</p>}
           </div>
         );
 

@@ -62,7 +62,7 @@ export function CoreValuesDisplay({
   };
 
   return (
-    <section className="panel stack-lg">
+    <section className="panel stack-lg animate-pulse-glow">
       <div className="section-header">
         <div>
           <p className="eyebrow">Governing Layer</p>
@@ -74,9 +74,13 @@ export function CoreValuesDisplay({
       </div>
 
       {values.length > 0 ? (
-        <div className="pill-row">
-          {values.map((value) => (
-            <article className="pill-card" key={value.id}>
+        <div className="pill-row stagger-in">
+          {values.map((value, index) => (
+            <article 
+              className="pill-card" 
+              key={value.id}
+              style={{ animationDelay: `${index * 0.08}s` }}
+            >
               {editingId === value.id ? (
                 <div className="inline-edit-form">
                   <input
@@ -114,7 +118,7 @@ export function CoreValuesDisplay({
           ))}
         </div>
       ) : (
-        <div className="empty-state">
+        <div className="empty-state animate-fade-in">
           <p>Add at least one value so the app has a governing code to work from.</p>
         </div>
       )}

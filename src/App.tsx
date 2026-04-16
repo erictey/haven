@@ -58,12 +58,12 @@ function SettingsScreen() {
 
   return (
     <section className="screen stack-xl">
-      <header className="panel hero-panel">
+      <header className="panel hero-panel animate-slide-up">
         <p className="eyebrow">Settings</p>
         <h2>Application Preferences</h2>
       </header>
 
-      <section className="panel stack-md">
+      <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <div className="section-header">
           <div>
             <p className="eyebrow">Startup</p>
@@ -76,7 +76,7 @@ function SettingsScreen() {
         <AutostartToggle />
       </section>
 
-      <section className="panel stack-md">
+      <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.2s' }}>
         <div className="section-header">
           <div>
             <p className="eyebrow">Data</p>
@@ -93,7 +93,7 @@ function SettingsScreen() {
         </div>
       </section>
 
-      <section className="panel stack-md reset-panel">
+      <section className="panel stack-md reset-panel animate-slide-up" style={{ animationDelay: '0.3s' }}>
         <div className="section-header">
           <div>
             <p className="eyebrow danger-text">Danger Zone</p>
@@ -113,7 +113,7 @@ function SettingsScreen() {
         )}
 
         {resetStep === 'confirm' && (
-          <div className="stack-md">
+          <div className="stack-md animate-scale-in">
             <p className="field-error">Are you sure? This deletes everything permanently.</p>
             <div className="action-row">
               <button className="button danger" onClick={() => setResetStep('typing')} type="button">
@@ -127,8 +127,8 @@ function SettingsScreen() {
         )}
 
         {resetStep === 'typing' && (
-          <div className="stack-md">
-            <p className="field-error">Type RESET to confirm.</p>
+          <div className="stack-md animate-scale-in">
+            <p className="field-error animate-shake">Type RESET to confirm.</p>
             <div className="form-row">
               <input
                 className="text-input"
@@ -155,9 +155,58 @@ function SettingsScreen() {
   );
 }
 
+function NavButton({ 
+  active, 
+  onClick, 
+  disabled, 
+  children 
+}: { 
+  active: boolean; 
+  onClick: () => void; 
+  disabled?: boolean; 
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      className={`button ${active ? '' : 'secondary'}`}
+      onClick={onClick}
+      disabled={disabled}
+      type="button"
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {children}
+      {active && (
+        <span 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '60%',
+            height: '3px',
+            background: 'rgba(255,255,255,0.3)',
+            borderRadius: '3px 3px 0 0',
+          }}
+          className="animate-scale-in"
+        />
+      )}
+    </button>
+  );
+}
+
 function AppShell() {
   const { canEditModel, state } = useAppContext();
   const [view, setView] = useState<AppView>('workflow');
+  const [headerVisible, setHeaderVisible] = useState(false);
+
+  useEffect(() => {
+    // Animate header in on mount
+    const timer = setTimeout(() => setHeaderVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (view === 'edit' && !canEditModel) {
@@ -179,7 +228,10 @@ function AppShell() {
   return (
     <div className="app-shell">
       <TitleBar />
-      <header className="app-header panel">
+      <header 
+        className={`app-header panel ${headerVisible ? 'animate-slide-up' : ''}`}
+        style={{ opacity: headerVisible ? 1 : 0 }}
+      >
         <div className="brand-block">
           <h1 className="app-logo">Indiva</h1>
           <p className="screen-copy">
@@ -189,35 +241,31 @@ function AppShell() {
         <div className="header-controls">
           <span className={`badge state-pill state-${state}`}>{getStateLabel(state)}</span>
           <nav className="action-row">
-            <button
-              className={`button ${activeView === 'workflow' ? '' : 'secondary'}`}
+            <NavButton
+              active={activeView === 'workflow'}
               onClick={() => changeView('workflow')}
-              type="button"
             >
               Workflow
-            </button>
-            <button
-              className={`button ${activeView === 'history' ? '' : 'secondary'}`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'history'}
               onClick={() => changeView('history')}
-              type="button"
             >
               History
-            </button>
-            <button
-              className={`button ${activeView === 'edit' ? '' : 'secondary'}`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'edit'}
               disabled={!canEditModel}
               onClick={() => changeView('edit')}
-              type="button"
             >
               Edit Model
-            </button>
-            <button
-              className={`button ${activeView === 'settings' ? '' : 'secondary'}`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'settings'}
               onClick={() => changeView('settings')}
-              type="button"
             >
               Settings
-            </button>
+            </NavButton>
           </nav>
         </div>
       </header>

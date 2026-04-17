@@ -30,10 +30,20 @@ export type MissionItem = {
   usedInCurrentRotation: boolean;
 };
 
+export type EvidenceAttachment = {
+  kind: 'image';
+  filePath: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType: string;
+  size: number;
+};
+
 export type EvidenceEntry = {
   id: string;
   text?: string;
   imageDataUrl?: string;
+  attachment?: EvidenceAttachment;
   createdAt: string;
 };
 
@@ -88,6 +98,7 @@ export type AppData = {
   missionItems: MissionItem[];
   activeCycle: ActiveCycle;
   history: HistoryCycle[];
+  pendingRecapCycleId?: string | null;
 };
 
 export type CycleSelection = Record<MissionCategory, string | null>;

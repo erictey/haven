@@ -1,15 +1,17 @@
 import { startTransition, useEffect, useState } from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { AutostartToggle } from './components/AutostartToggle';
 import { BrandMark } from './components/BrandMark';
 import { CloseToTrayToggle } from './components/CloseToTrayToggle';
 import { ObservatoryBackdrop } from './components/ObservatoryBackdrop';
-import { ObservatoryScene } from './components/ObservatoryScene';
+import { QuickJournalModal } from './components/QuickJournalModal';
 import { ScreenTransition } from './components/ScreenTransition';
 import { TitleBar } from './components/TitleBar';
-import { appQuit, hasElectronApi } from './lib/electron';
+import { appQuit, hasElectronApi, subscribeToQuickJournal } from './lib/electron';
 import { OBSERVATORY_THEME } from './lib/visuals';
-import type { AppState } from './lib/types';
+import type { AppState, MissionCategory } from './lib/types';
+import { CompletedCycleScreen } from './screens/CompletedCycleScreen';
 import { AboutScreen } from './screens/AboutScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
@@ -31,35 +33,31 @@ function WorkflowScreen() {
     ready_to_select: <SelectionScreen />,
     active_week: <DashboardScreen />,
     awaiting_reflection: <ReflectionScreen />,
-    completed_cycle: <SelectionScreen />,
+    completed_cycle: <CompletedCycleScreen />,
   };
 
   return screens[state];
 }
 
 function SettingsScreen() {
-  const { history, clearAllData, exportData } = useAppContext();
+  const {
+    history,
+    clearAllData,
+    exportBackup,
+    importBackup,
+    persistenceNotice,
+    clearPersistenceNotice,
+  } = useAppContext();
   const [resetStep, setResetStep] = useState<'idle' | 'confirm' | 'typing'>('idle');
   const [resetInput, setResetInput] = useState('');
 
-  const handleExport = () => {
-    const data = exportData();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `haven-export-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.append(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-
   const handleReset = () => {
     if (resetInput === 'RESET') {
-      clearAllData();
-      setResetStep('idle');
-      setResetInput('');
+      const cleared = clearAllData();
+      if (cleared) {
+        setResetStep('idle');
+        setResetInput('');
+      }
     }
   };
 
@@ -68,7 +66,27 @@ function SettingsScreen() {
       <header className="panel hero-panel animate-slide-up">
         <p className="eyebrow">Settings</p>
         <h2>Your Preferences</h2>
+        <p className="screen-copy">
+          Haven is local-first. Backup, restore, and reset all live here now so data controls are in one place.
+        </p>
       </header>
+
+      {persistenceNotice ? (
+        <section className="panel stack-md animate-fade-in settings-notice">
+          <div className="section-header">
+            <div>
+              <p className="eyebrow danger-text">Storage Notice</p>
+              <h3>Something needs your attention</h3>
+            </div>
+            <p className="section-copy">{persistenceNotice}</p>
+          </div>
+          <div className="action-row settings-notice-actions">
+            <button className="button secondary" onClick={clearPersistenceNotice} type="button">
+              Dismiss
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="panel stack-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <div className="section-header">
@@ -122,15 +140,18 @@ function SettingsScreen() {
         <div className="section-header">
           <div>
             <p className="eyebrow">Data</p>
-            <h3>Export &amp; Backup</h3>
+            <h3>Backup &amp; Restore</h3>
           </div>
           <p className="section-copy">
-            Download all your data as a file. {history.length} completed {history.length === 1 ? 'week' : 'weeks'} saved.
+            {history.length} completed {history.length === 1 ? 'week' : 'weeks'} saved on this device. Export a portable backup or restore one from disk.
           </p>
         </div>
         <div className="action-row">
-          <button className="button secondary" onClick={handleExport} type="button">
-            Export All Data
+          <button className="button secondary" onClick={exportBackup} type="button">
+            Export Backup
+          </button>
+          <button className="button secondary" onClick={importBackup} type="button">
+            Restore Backup
           </button>
         </div>
       </section>
@@ -147,7 +168,7 @@ function SettingsScreen() {
         </div>
 
         {resetStep === 'idle' && (
-          <div className="action-row">
+          <div className="action-row header-utility-row">
             <button className="button danger" onClick={() => setResetStep('confirm')} type="button">
               Reset All Data
             </button>
@@ -246,9 +267,11 @@ function NavButton({
 }
 
 function AppShell() {
-  const { canEditModel: canEditFramework, state } = useAppContext();
+  const { activeCycle, canEditFramework, state } = useAppContext();
   const [view, setView] = useState<AppView>('workflow');
   const [headerVisible, setHeaderVisible] = useState(false);
+  const [quickJournalOpen, setQuickJournalOpen] = useState(false);
+  const [quickJournalCategory, setQuickJournalCategory] = useState<MissionCategory>('build');
 
   useEffect(() => {
     // Animate header in on mount
@@ -261,6 +284,19 @@ function AppShell() {
       setView('workflow');
     }
   }, [canEditFramework, view]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToQuickJournal(({ category }) => {
+      setQuickJournalCategory(category ?? 'build');
+      setQuickJournalOpen(true);
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
 
   const changeView = (nextView: AppView) => {
     startTransition(() => setView(nextView));
@@ -293,11 +329,21 @@ function AppShell() {
             </div>
           </div>
 
-          <div className="app-header-visual">
-            <ObservatoryScene scene="shell" />
-          </div>
         </div>
         <div className="header-controls">
+          <div className="action-row">
+            <button
+              className="button secondary small"
+              disabled={!activeCycle}
+              onClick={() => {
+                setQuickJournalCategory('build');
+                setQuickJournalOpen(true);
+              }}
+              type="button"
+            >
+              Quick Journal
+            </button>
+          </div>
           <nav className="action-row">
             <NavButton
               active={activeView === 'workflow'}
@@ -316,7 +362,7 @@ function AppShell() {
               disabled={!canEditFramework}
               onClick={() => changeView('edit')}
             >
-              Edit
+              Framework
             </NavButton>
             <NavButton
               active={activeView === 'about'}
@@ -341,14 +387,21 @@ function AppShell() {
         {activeView === 'settings' ? <SettingsScreen /> : null}
         {activeView === 'workflow' ? <WorkflowScreen /> : null}
       </ScreenTransition>
+      <QuickJournalModal
+        category={quickJournalCategory}
+        onClose={() => setQuickJournalOpen(false)}
+        open={quickJournalOpen}
+      />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppShell />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }

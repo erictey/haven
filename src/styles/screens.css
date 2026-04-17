@@ -1,0 +1,31 @@
+/* Screen-level refinements for the roadmap additions. */
+
+.history-toolbar .section-header,
+.settings-notice .section-header {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.history-filters {
+  align-items: stretch;
+}
+
+.history-filters .text-input,
+.history-filters select.text-input {
+  min-width: min(280px, 100%);
+  flex: 1 1 240px;
+}
+
+.settings-notice {
+  border-color: rgba(255, 145, 135, 0.22);
+}
+
+.settings-notice-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .header-utility-row {
+    justify-content: center;
+  }
+}

@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const { randomUUID } = require('crypto');
+const { pathToFileURL } = require('url');
 
 let mainWindow = null;
 let tray = null;
@@ -15,6 +17,14 @@ let preferences = { ...DEFAULT_PREFERENCES };
 
 function getPreferencesPath() {
   return path.join(app.getPath('userData'), 'preferences.json');
+}
+
+function getDataFilePath() {
+  return path.join(app.getPath('userData'), 'haven-data.json');
+}
+
+function getAttachmentsDirectory() {
+  return path.join(app.getPath('userData'), 'attachments');
 }
 
 function loadPreferences() {
@@ -134,6 +144,20 @@ function updateTrayMenu() {
         }
       },
     },
+    { type: 'separator' },
+    {
+      label: 'Quick Journal: Build',
+      click: () => openQuickJournal('build'),
+    },
+    {
+      label: 'Quick Journal: Shape',
+      click: () => openQuickJournal('shape'),
+    },
+    {
+      label: 'Quick Journal: Work With',
+      click: () => openQuickJournal('workWith'),
+    },
+    { type: 'separator' },
     {
       label: 'Quit Haven',
       click: () => {
@@ -166,6 +190,11 @@ function ensureTray() {
   });
   updateTrayMenu();
   return tray;
+}
+
+function openQuickJournal(category) {
+  showMainWindow();
+  mainWindow?.webContents.send('journal:quick', { category });
 }
 
 function hideToTray() {
@@ -298,6 +327,230 @@ ipcMain.handle('preferences:setCloseToTray', (_event, enabled) => {
 
   return preferences.closeToTray;
 });
+
+ipcMain.on('data:load', (event) => {
+  try {
+    const dataPath = getDataFilePath();
+
+    if (!fs.existsSync(dataPath)) {
+      event.returnValue = null;
+      return;
+    }
+
+    event.returnValue = fs.readFileSync(dataPath, 'utf8');
+  } catch (error) {
+    console.error('Failed to load Haven data', error);
+    event.returnValue = null;
+  }
+});
+
+ipcMain.on('data:save', (event, raw) => {
+  try {
+    JSON.parse(raw);
+    fs.mkdirSync(path.dirname(getDataFilePath()), { recursive: true });
+    fs.writeFileSync(getDataFilePath(), raw, 'utf8');
+    event.returnValue = { ok: true };
+  } catch (error) {
+    console.error('Failed to save Haven data', error);
+    event.returnValue = {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown save error',
+    };
+  }
+});
+
+ipcMain.on('data:export', (event, raw) => {
+  try {
+    const parsed = JSON.parse(raw);
+    const backup = buildPortableBackup(parsed);
+    const savePath = require('electron').dialog.showSaveDialogSync(mainWindow, {
+      title: 'Export Haven backup',
+      defaultPath: path.join(
+        app.getPath('documents'),
+        `haven-export-${new Date().toISOString().slice(0, 10)}.json`,
+      ),
+      filters: [{ name: 'Haven Backup', extensions: ['json'] }],
+    });
+
+    if (!savePath) {
+      event.returnValue = { ok: false, cancelled: true };
+      return;
+    }
+
+    fs.writeFileSync(savePath, JSON.stringify(backup, null, 2), 'utf8');
+    event.returnValue = { ok: true, path: savePath };
+  } catch (error) {
+    console.error('Failed to export Haven backup', error);
+    event.returnValue = {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown export error',
+    };
+  }
+});
+
+ipcMain.on('data:import', (event) => {
+  try {
+    const result = require('electron').dialog.showOpenDialogSync(mainWindow, {
+      title: 'Import Haven backup',
+      properties: ['openFile'],
+      filters: [{ name: 'Haven Backup', extensions: ['json'] }],
+    });
+
+    const filePath = result?.[0];
+    if (!filePath) {
+      event.returnValue = { ok: false, cancelled: true };
+      return;
+    }
+
+    event.returnValue = {
+      ok: true,
+      raw: fs.readFileSync(filePath, 'utf8'),
+    };
+  } catch (error) {
+    console.error('Failed to import Haven backup', error);
+    event.returnValue = {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown import error',
+    };
+  }
+});
+
+ipcMain.on('data:clear', (event) => {
+  try {
+    const dataPath = getDataFilePath();
+    const attachmentsPath = getAttachmentsDirectory();
+
+    if (fs.existsSync(dataPath)) {
+      fs.unlinkSync(dataPath);
+    }
+
+    if (fs.existsSync(attachmentsPath)) {
+      fs.rmSync(attachmentsPath, { recursive: true, force: true });
+    }
+
+    event.returnValue = { ok: true };
+  } catch (error) {
+    console.error('Failed to clear Haven data', error);
+    event.returnValue = {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown clear error',
+    };
+  }
+});
+
+ipcMain.on('data:saveAttachment', (event, payload) => {
+  try {
+    event.returnValue = saveAttachmentFromDataUrl(payload?.dataUrl, payload?.fileName);
+  } catch (error) {
+    console.error('Failed to store Haven attachment', error);
+    event.returnValue = null;
+  }
+});
+
+function buildPortableBackup(envelope) {
+  const clone = JSON.parse(JSON.stringify(envelope));
+
+  forEachEvidenceEntry(clone?.data, (entry) => {
+    if (!entry?.attachment?.filePath || !fs.existsSync(entry.attachment.filePath)) {
+      return;
+    }
+
+    entry.attachment.dataUrl = fileToDataUrl(
+      entry.attachment.filePath,
+      entry.attachment.mimeType,
+    );
+  });
+
+  if (clone && typeof clone === 'object') {
+    clone.exportedAt = new Date().toISOString();
+  }
+
+  return clone;
+}
+
+function forEachEvidenceEntry(data, visitor) {
+  if (!data || typeof data !== 'object') {
+    return;
+  }
+
+  const visitEvidenceGroup = (evidence) => {
+    if (!evidence || typeof evidence !== 'object') {
+      return;
+    }
+
+    for (const entries of Object.values(evidence)) {
+      if (!Array.isArray(entries)) {
+        continue;
+      }
+
+      for (const entry of entries) {
+        visitor(entry);
+      }
+    }
+  };
+
+  visitEvidenceGroup(data.activeCycle?.evidence);
+
+  if (Array.isArray(data.history)) {
+    for (const historyEntry of data.history) {
+      visitEvidenceGroup(historyEntry?.evidence);
+    }
+  }
+}
+
+function fileToDataUrl(filePath, mimeType) {
+  const buffer = fs.readFileSync(filePath);
+  return `data:${mimeType || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
+}
+
+function saveAttachmentFromDataUrl(dataUrl, fileName = 'evidence') {
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
+    return null;
+  }
+
+  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (!match) {
+    return null;
+  }
+
+  const mimeType = match[1];
+  const payload = match[2];
+  const extension = getExtensionForMimeType(mimeType, fileName);
+  const safeName = `${randomUUID()}.${extension}`;
+  const targetDirectory = getAttachmentsDirectory();
+  const targetPath = path.join(targetDirectory, safeName);
+  const buffer = Buffer.from(payload, 'base64');
+
+  fs.mkdirSync(targetDirectory, { recursive: true });
+  fs.writeFileSync(targetPath, buffer);
+
+  return {
+    kind: 'image',
+    filePath: targetPath,
+    fileName: path.basename(fileName, path.extname(fileName)) + `.${extension}`,
+    fileUrl: pathToFileURL(targetPath).href,
+    mimeType,
+    size: buffer.byteLength,
+  };
+}
+
+function getExtensionForMimeType(mimeType, fileName) {
+  const ext = path.extname(fileName || '').replace('.', '').toLowerCase();
+  if (ext) {
+    return ext;
+  }
+
+  switch (mimeType) {
+    case 'image/jpeg':
+      return 'jpg';
+    case 'image/gif':
+      return 'gif';
+    case 'image/webp':
+      return 'webp';
+    default:
+      return 'png';
+  }
+}
 
 app.whenReady().then(() => {
   preferences = loadPreferences();

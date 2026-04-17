@@ -1,152 +1,129 @@
 import {
-  CATEGORY_ORDER,
-  createEmptyCycleEvidence,
-  createEmptyIntentions,
-  type AppData,
-  type CycleEvidence,
-  type CycleIntentions,
-  type HistoryCycle,
-  type MissionItem,
-} from './types';
+  clearEnvelopeFromStorage,
+  loadEnvelopeFromStorage,
+  saveEnvelopeToStorage,
+} from './browserPersistence';
+import {
+  clearPersistedData,
+  exportPersistedData,
+  hasElectronDataApi,
+  importPersistedData,
+  loadPersistedData,
+  saveEvidenceAttachment,
+  savePersistedData,
+} from './electron';
+import {
+  createEmptyAppData,
+  createPersistedEnvelope,
+  HAVEN_STORAGE_KEY,
+  LEGACY_STORAGE_KEYS,
+  migrateLegacyStorageSnapshot,
+  parseBackupImport,
+  parsePersistedEnvelope,
+  serializeBackupEnvelope,
+} from './persistedData';
+import type { AppData, CycleEvidence, EvidenceEntry } from './types';
 
-export const STORAGE_KEYS = {
-  setupCompleted: 'tim_setup_completed',
-  coreValues: 'tim_core_values',
-  missionItems: 'tim_mission_items',
-  activeCycle: 'tim_active_cycle',
-  history: 'tim_history',
-} as const;
-
-export function createEmptyAppData(): AppData {
-  return {
-    setupCompleted: false,
-    coreValues: [],
-    missionItems: [],
-    activeCycle: null,
-    history: [],
-  };
-}
-
-function hasMinimumStoredSetup(missionItems: MissionItem[]) {
-  return CATEGORY_ORDER.every((category) =>
-    missionItems.some((item) => item.category === category && item.isActive),
-  );
-}
-
-export function readJson<T>(key: string, fallback: T) {
-  if (typeof window === 'undefined') {
-    return fallback;
-  }
-
-  const raw = window.localStorage.getItem(key);
-
-  if (!raw) {
-    return fallback;
-  }
-
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-export function writeJson<T>(key: string, value: T) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.localStorage.setItem(key, JSON.stringify(value));
-}
+export { createEmptyAppData, HAVEN_STORAGE_KEY, LEGACY_STORAGE_KEYS };
 
 export function loadAppData() {
-  const emptyState = createEmptyAppData();
-  const coreValues = readJson(STORAGE_KEYS.coreValues, emptyState.coreValues);
-  const missionItems = readJson(STORAGE_KEYS.missionItems, emptyState.missionItems);
-  const activeCycleRaw = readJson(STORAGE_KEYS.activeCycle, emptyState.activeCycle);
-  const historyRaw = readJson(STORAGE_KEYS.history, emptyState.history);
+  if (typeof window === 'undefined') {
+    return createEmptyAppData();
+  }
 
-  const normalizeEvidence = (value: unknown): CycleEvidence => {
-    const fallback = createEmptyCycleEvidence();
-    if (!value || typeof value !== 'object') return fallback;
+  if (hasElectronDataApi()) {
+    const raw = loadPersistedData();
+    const persisted = raw ? parsePersistedEnvelope(raw) : null;
+    if (persisted) {
+      return persisted.data;
+    }
+  }
 
-    const record = value as Partial<Record<keyof CycleEvidence, unknown>>;
-    return {
-      build: Array.isArray(record.build) ? record.build : [],
-      shape: Array.isArray(record.shape) ? record.shape : [],
-      workWith: Array.isArray(record.workWith) ? record.workWith : [],
-    };
-  };
+  const browserEnvelope = loadEnvelopeFromStorage(window.localStorage);
+  if (browserEnvelope) {
+    if (hasElectronDataApi()) {
+      savePersistedData(JSON.stringify(createPersistedEnvelope(browserEnvelope.data)));
+      clearEnvelopeFromStorage(window.localStorage);
+    }
+    return browserEnvelope.data;
+  }
 
-  const normalizeIntentions = (value: unknown): CycleIntentions => {
-    const fallback = createEmptyIntentions();
-    if (!value || typeof value !== 'object') return fallback;
+  const migrated = migrateLegacyStorageSnapshot(readLegacySnapshot(window.localStorage));
+  if (!migrated) {
+    return createEmptyAppData();
+  }
 
-    const record = value as Partial<Record<keyof CycleIntentions, unknown>>;
-    return {
-      build: typeof record.build === 'string' ? record.build : '',
-      shape: typeof record.shape === 'string' ? record.shape : '',
-      workWith: typeof record.workWith === 'string' ? record.workWith : '',
-    };
-  };
-
-  const activeCycle = activeCycleRaw
-    ? {
-        ...activeCycleRaw,
-        evidence: normalizeEvidence((activeCycleRaw as { evidence?: unknown }).evidence),
-        intentions: normalizeIntentions((activeCycleRaw as { intentions?: unknown }).intentions),
-      }
-    : null;
-
-  const history = (Array.isArray(historyRaw) ? historyRaw : []).map((entry) => ({
-    ...(entry as HistoryCycle),
-    evidence: normalizeEvidence((entry as { evidence?: unknown }).evidence),
-    intentions: normalizeIntentions((entry as { intentions?: unknown }).intentions),
-  }));
-  const inferredSetupCompleted =
-    !!activeCycle ||
-    history.length > 0 ||
-    (coreValues.length > 0 && hasMinimumStoredSetup(missionItems));
-
-  return {
-    setupCompleted: readJson(STORAGE_KEYS.setupCompleted, inferredSetupCompleted),
-    coreValues,
-    missionItems,
-    activeCycle,
-    history,
-  };
+  const nextData = materializeInlineImages(migrated.data);
+  saveAppData(nextData);
+  clearLegacyData();
+  return nextData;
 }
 
 export function saveAppData(data: AppData) {
-  writeJson(STORAGE_KEYS.setupCompleted, data.setupCompleted);
-  writeJson(STORAGE_KEYS.coreValues, data.coreValues);
-  writeJson(STORAGE_KEYS.missionItems, data.missionItems);
-  writeJson(STORAGE_KEYS.activeCycle, data.activeCycle);
-  writeJson(STORAGE_KEYS.history, data.history);
+  if (typeof window === 'undefined') {
+    return { ok: true as const };
+  }
+
+  const prepared = materializeInlineImages(data);
+  const envelope = createPersistedEnvelope(prepared);
+
+  if (hasElectronDataApi()) {
+    return savePersistedData(JSON.stringify(envelope));
+  }
+
+  return saveEnvelopeToStorage(window.localStorage, envelope);
 }
 
 export function clearStoredAppData() {
   if (typeof window === 'undefined') {
-    return;
+    return { ok: true as const };
   }
 
-  for (const key of Object.values(STORAGE_KEYS)) {
-    window.localStorage.removeItem(key);
+  clearLegacyData();
+
+  if (hasElectronDataApi()) {
+    return clearPersistedData();
   }
+
+  clearEnvelopeFromStorage(window.localStorage);
+  return { ok: true as const };
 }
 
 export function exportAppData(data: AppData) {
-  return JSON.stringify(
-    {
-      [STORAGE_KEYS.setupCompleted]: data.setupCompleted,
-      [STORAGE_KEYS.coreValues]: data.coreValues,
-      [STORAGE_KEYS.missionItems]: data.missionItems,
-      [STORAGE_KEYS.activeCycle]: data.activeCycle,
-      [STORAGE_KEYS.history]: data.history,
-    },
-    null,
-    2,
-  );
+  const prepared = materializeInlineImages(data);
+
+  if (typeof window === 'undefined') {
+    return { ok: false as const, error: 'Export unavailable in this environment.' };
+  }
+
+  if (hasElectronDataApi()) {
+    return exportPersistedData(JSON.stringify(createPersistedEnvelope(prepared)));
+  }
+
+  const raw = serializeBackupEnvelope(prepared);
+  downloadTextFile(makeExportFilename(new Date()), raw);
+  return { ok: true as const };
+}
+
+export function importAppData() {
+  if (typeof window === 'undefined' || !hasElectronDataApi()) {
+    return { ok: false as const, error: 'Import is only available in the desktop app.' };
+  }
+
+  const result = importPersistedData();
+  if (!result.ok || !result.raw) {
+    return result;
+  }
+
+  try {
+    const imported = materializeInlineImages(parseBackupImport(result.raw));
+    return { ok: true as const, data: imported };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error: error instanceof Error ? error.message : 'Could not parse backup file.',
+    };
+  }
 }
 
 export function makeExportFilename(date = new Date()) {
@@ -154,7 +131,7 @@ export function makeExportFilename(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  return `tim-export-${year}-${month}-${day}.json`;
+  return `haven-export-${year}-${month}-${day}.json`;
 }
 
 export function downloadTextFile(filename: string, content: string) {
@@ -172,4 +149,72 @@ export function downloadTextFile(filename: string, content: string) {
   link.click();
   link.remove();
   window.URL.revokeObjectURL(url);
+}
+
+function readLegacySnapshot(storage: Storage) {
+  return {
+    [LEGACY_STORAGE_KEYS.setupCompleted]: storage.getItem(LEGACY_STORAGE_KEYS.setupCompleted),
+    [LEGACY_STORAGE_KEYS.coreValues]: storage.getItem(LEGACY_STORAGE_KEYS.coreValues),
+    [LEGACY_STORAGE_KEYS.missionItems]: storage.getItem(LEGACY_STORAGE_KEYS.missionItems),
+    [LEGACY_STORAGE_KEYS.activeCycle]: storage.getItem(LEGACY_STORAGE_KEYS.activeCycle),
+    [LEGACY_STORAGE_KEYS.history]: storage.getItem(LEGACY_STORAGE_KEYS.history),
+  };
+}
+
+function clearLegacyData() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  for (const key of Object.values(LEGACY_STORAGE_KEYS)) {
+    window.localStorage.removeItem(key);
+  }
+}
+
+function materializeInlineImages(data: AppData): AppData {
+  if (!hasElectronDataApi()) {
+    return data;
+  }
+
+  const materializeEntries = (entries: EvidenceEntry[]) =>
+    entries.map((entry) => {
+      if (!entry.imageDataUrl || entry.attachment) {
+        return entry;
+      }
+
+      const attachment = saveEvidenceAttachment(
+        entry.imageDataUrl,
+        `${entry.id || 'evidence'}.png`,
+      );
+
+      if (!attachment) {
+        return entry;
+      }
+
+      return {
+        ...entry,
+        imageDataUrl: undefined,
+        attachment,
+      };
+    });
+
+  const materializeEvidence = (evidence: CycleEvidence): CycleEvidence => ({
+    build: materializeEntries(evidence.build),
+    shape: materializeEntries(evidence.shape),
+    workWith: materializeEntries(evidence.workWith),
+  });
+
+  return {
+    ...data,
+    activeCycle: data.activeCycle
+      ? {
+          ...data.activeCycle,
+          evidence: materializeEvidence(data.activeCycle.evidence),
+        }
+      : null,
+    history: data.history.map((entry) => ({
+      ...entry,
+      evidence: materializeEvidence(entry.evidence),
+    })),
+  };
 }

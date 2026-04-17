@@ -1,0 +1,35 @@
+/* Observatory theme tokens and shell-level atmosphere overrides. */
+
+:root {
+  --bg-deep: #03101a;
+  --bg-base: #071824;
+  --bg-surface: rgba(8, 24, 36, 0.84);
+  --bg-elevated: rgba(12, 30, 44, 0.9);
+  --bg-glass: rgba(7, 20, 31, 0.76);
+  --ink: #ebfdff;
+  --ink-secondary: #b8d8e2;
+  --muted: #7da4b6;
+  --border: rgba(143, 200, 255, 0.12);
+  --border-focus: rgba(124, 244, 220, 0.42);
+  --accent: #7cf4dc;
+  --accent-soft: rgba(124, 244, 220, 0.14);
+  --accent-glow: rgba(124, 244, 220, 0.24);
+  --green-bright: #7cf4dc;
+  --green-deep: #8fc8ff;
+  --emerald: #8fc8ff;
+  --gold: #dffeff;
+  --danger: #ff9187;
+  --danger-soft: rgba(255, 145, 135, 0.14);
+  --panel-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 0 1px rgba(223, 254, 255, 0.02);
+  --glow-sm: 0 0 28px rgba(124, 244, 220, 0.08);
+  --glow-md: 0 0 48px rgba(143, 200, 255, 0.12);
+  --glow-lg: 0 0 72px rgba(124, 244, 220, 0.18);
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}

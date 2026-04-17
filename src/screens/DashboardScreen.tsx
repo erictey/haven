@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CategoryEmblem } from '../components/CategoryEmblem';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { EvidenceColumn } from '../components/EvidenceColumn';
 import { FloatingBubble } from '../components/FloatingBubble';
 import { MotivationalMessage } from '../components/MotivationalMessage';
-import { ObservatoryScene } from '../components/ObservatoryScene';
 import { useAppContext } from '../context/AppContext';
+import { useDialogFocusTrap } from '../hooks/useDialogFocusTrap';
 import { CATEGORY_DETAILS } from '../lib/categoryModel';
-import { CATEGORY_VISUALS, OBSERVATORY_THEME } from '../lib/visuals';
+import { CATEGORY_VISUALS } from '../lib/visuals';
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
@@ -43,6 +43,7 @@ export function DashboardScreen() {
   const [greetingPhase, setGreetingPhase] = useState<'enter' | 'hold' | 'exit'>('enter');
   const [modalState, setModalState] = useState<DashboardModalState>(null);
   const [journalCategory, setJournalCategory] = useState<MissionCategory>('build');
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (showGreeting) {
@@ -58,18 +59,7 @@ export function DashboardScreen() {
     }
   }, [showGreeting]);
 
-  useEffect(() => {
-    if (!modalState) return undefined;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setModalState(null);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [modalState]);
+  useDialogFocusTrap(modalRef, Boolean(modalState), () => setModalState(null));
 
   if (showGreeting) {
     return (
@@ -77,11 +67,8 @@ export function DashboardScreen() {
         <div
           className={`step-greeting dash-greeting ${greetingPhase === 'exit' ? 'screen-exit' : ''}`}
         >
-          <div className="step-greeting-scene">
-            <ObservatoryScene scene="dashboard" />
-          </div>
           <h2 className="greeting-title greeting-fade-in">Welcome back</h2>
-          <p className="greeting-sub">You're right where you need to be. One day at a time.</p>
+          <p className="greeting-sub">Your week is in progress.</p>
         </div>
       </section>
     );
@@ -126,6 +113,7 @@ export function DashboardScreen() {
         aria-modal="true"
         className="panel dashboard-modal-card animate-scale-in"
         onClick={(event) => event.stopPropagation()}
+        ref={modalRef}
         role="dialog"
       >
         {activeInfo && selectedInfoMission ? (
@@ -223,18 +211,14 @@ export function DashboardScreen() {
     <section className="screen">
       <div className="dashboard-layout">
         <header className="panel week-hero animate-slide-up" style={{ animationDelay: '0s' }}>
-          <div className="week-hero-art">
-            <ObservatoryScene scene="dashboard" />
-          </div>
           <div className="week-hero-row">
             <span className="badge state-pill state-active_week">This Week</span>
-            <span className="badge neutral observatory-chip">{OBSERVATORY_THEME.descriptor}</span>
           </div>
           <h2 className="week-hero-title">
             {formatDateRange(activeCycle?.startDate, activeCycle?.endDate)}
           </h2>
           <p className="week-hero-sub">
-            Polar Horizon is tracking your week through effort, influence, and wise response.
+            Tracking direct effort, gentle influence, and wise response.
           </p>
           {coreValues.length > 0 ? (
             <div className="week-hero-values">

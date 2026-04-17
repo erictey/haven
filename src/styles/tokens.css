@@ -1,0 +1,52 @@
+/* Shared theme tokens extracted from the main stylesheet. */
+
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
+  line-height: 1.55;
+  font-weight: 400;
+  --bg-deep: #060f0b;
+  --bg-base: #0a1a14;
+  --bg-surface: rgba(14, 36, 26, 0.85);
+  --bg-elevated: rgba(20, 50, 36, 0.9);
+  --bg-glass: rgba(10, 26, 20, 0.88);
+  --ink: #e0f2e8;
+  --ink-secondary: #a3c4b4;
+  --muted: #6b9a84;
+  --border: rgba(74, 180, 130, 0.15);
+  --border-focus: rgba(74, 222, 128, 0.45);
+  --accent: #4ade80;
+  --accent-soft: rgba(74, 222, 128, 0.15);
+  --accent-glow: rgba(74, 222, 128, 0.25);
+  --green-bright: #22c55e;
+  --green-deep: #16a34a;
+  --emerald: #34d399;
+  --gold: #fbbf24;
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.15);
+  --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 1px rgba(74, 222, 128, 0.1);
+  --glow-sm: 0 0 20px rgba(74, 222, 128, 0.08);
+  --glow-md: 0 0 40px rgba(74, 222, 128, 0.12);
+  --glow-lg: 0 4px 60px rgba(74, 222, 128, 0.18);
+  --fs-display: 3.5rem;
+  --fs-h1: 2.25rem;
+  --fs-h2: 1.5rem;
+  --fs-h3: 1.125rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-xs: 0.75rem;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-smooth: cubic-bezier(0.45, 0, 0.2, 1);
+  --duration-fast: 0.22s;
+  --duration-normal: 0.38s;
+  --duration-slow: 0.6s;
+  --duration-slower: 0.95s;
+}

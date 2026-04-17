@@ -2,50 +2,43 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useReducer,
-  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { getMessageForDate } from '../lib/messages';
-import { applySelectionToRotation, getEligibleMissionItems } from '../lib/rotation';
-import {
-  canDeleteMissionItem as canDeleteMissionItemGuard,
-  canEditFramework as canEditFrameworkForState,
-  deriveAppState,
-  getCycleDates,
-  hasMinimumSetup,
-  validateSelection,
-} from '../lib/stateMachine';
+import { canDeleteMissionItem as canDeleteMissionItemGuard, canEditFramework as canEditFrameworkForState, deriveAppState, validateSelection } from '../lib/stateMachine';
 import {
   clearStoredAppData,
-  createEmptyAppData,
   exportAppData,
+  importAppData,
   loadAppData,
   saveAppData,
 } from '../lib/storage';
 import {
   type AppData,
   type AppState,
-  type CoreValue,
-  type CycleSelection,
-  createEmptyCycleEvidence,
-  createEmptyIntentions,
-  type EvidenceEntry,
   type HistoryCycle,
+  type EvidenceAttachment,
+  type CycleSelection,
   type CycleIntentions,
   type MissionCategory,
   type MissionItem,
   type SelectionErrors,
 } from '../lib/types';
+import { appReducer } from './appReducer';
+import { getActiveCycleItems, getEligibleItems, getPendingRecapCycle } from './appSelectors';
 
 type AppContextValue = AppData & {
   nowIso: string;
   state: AppState;
-  canEditModel: boolean;
+  canEditFramework: boolean;
   eligibleItems: Record<MissionCategory, MissionItem[]>;
   activeCycleItems: Record<MissionCategory, MissionItem | null>;
+  pendingRecapCycle: HistoryCycle | null;
   cycleMessage: ReturnType<typeof getMessageForDate>;
+  persistenceNotice: string | null;
   addCoreValue: (text: string) => void;
   updateCoreValue: (id: string, text: string) => void;
   deleteCoreValue: (id: string) => void;
@@ -55,7 +48,7 @@ type AppContextValue = AppData & {
   deleteMissionItem: (id: string) => boolean;
   addEvidence: (
     category: MissionCategory,
-    payload: { text?: string; imageDataUrl?: string },
+    payload: { text?: string; imageDataUrl?: string; attachment?: EvidenceAttachment },
   ) => boolean;
   deleteEvidence: (category: MissionCategory, evidenceId: string) => void;
   completeSetup: () => void;
@@ -65,314 +58,23 @@ type AppContextValue = AppData & {
   ) => { ok: boolean; errors: SelectionErrors };
   submitReflection: (text: string) => boolean;
   deleteHistoryRecord: (id: string) => void;
-  clearAllData: () => void;
-  exportData: () => string;
+  clearAllData: () => boolean;
+  exportBackup: () => boolean;
+  importBackup: () => boolean;
+  acknowledgeCompletedCycle: () => void;
+  clearPersistenceNotice: () => void;
 };
 
-type AppAction =
-  | { type: 'add_core_value'; text: string; timestamp: string }
-  | { type: 'update_core_value'; id: string; text: string; timestamp: string }
-  | { type: 'delete_core_value'; id: string }
-  | { type: 'add_mission_item'; category: MissionCategory; text: string }
-  | { type: 'update_mission_item'; id: string; text: string }
-  | { type: 'toggle_mission_item_active'; id: string }
-  | { type: 'delete_mission_item'; id: string }
-  | {
-      type: 'add_evidence';
-      category: MissionCategory;
-      text?: string;
-      imageDataUrl?: string;
-      timestamp: string;
-    }
-  | { type: 'delete_evidence'; category: MissionCategory; evidenceId: string }
-  | { type: 'complete_setup' }
-  | {
-      type: 'start_cycle';
-      selection: CycleSelection;
-      intentions: CycleIntentions;
-      timestamp: string;
-    }
-  | { type: 'mark_awaiting_reflection' }
-  | { type: 'submit_reflection'; text: string; timestamp: string }
-  | { type: 'delete_history_record'; id: string }
-  | { type: 'clear_all' };
-
 const AppContext = createContext<AppContextValue | undefined>(undefined);
-
-function createId() {
-  return (
-    globalThis.crypto?.randomUUID?.() ??
-    `tim-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  );
-}
-
-function getMissionText(items: MissionItem[], id: string) {
-  return items.find((item) => item.id === id)?.text ?? 'Removed mission item';
-}
-
-function buildHistoryCycle(
-  activeCycle: NonNullable<AppData['activeCycle']>,
-  items: MissionItem[],
-  reflectionText: string,
-  submittedAt: string,
-): HistoryCycle {
-  return {
-    id: activeCycle.id,
-    buildItemId: activeCycle.buildItemId,
-    shapeItemId: activeCycle.shapeItemId,
-    workWithItemId: activeCycle.workWithItemId,
-    buildText: getMissionText(items, activeCycle.buildItemId),
-    shapeText: getMissionText(items, activeCycle.shapeItemId),
-    workWithText: getMissionText(items, activeCycle.workWithItemId),
-    intentions: activeCycle.intentions ?? createEmptyIntentions(),
-    startDate: activeCycle.startDate,
-    endDate: activeCycle.endDate,
-    evidence: activeCycle.evidence,
-    reflection: {
-      text: reflectionText.trim(),
-      submittedAt,
-    },
-  };
-}
 
 function initialAppData(_: undefined) {
   return loadAppData();
 }
 
-function appReducer(state: AppData, action: AppAction): AppData {
-  switch (action.type) {
-    case 'add_core_value': {
-      const text = action.text.trim();
-
-      if (!text) {
-        return state;
-      }
-
-      const newValue: CoreValue = {
-        id: createId(),
-        text,
-        createdAt: action.timestamp,
-        updatedAt: action.timestamp,
-      };
-
-      return {
-        ...state,
-        coreValues: [...state.coreValues, newValue],
-      };
-    }
-
-    case 'update_core_value': {
-      const text = action.text.trim();
-
-      if (!text) {
-        return state;
-      }
-
-      return {
-        ...state,
-        coreValues: state.coreValues.map((value) =>
-          value.id === action.id ? { ...value, text, updatedAt: action.timestamp } : value,
-        ),
-      };
-    }
-
-    case 'delete_core_value':
-      return {
-        ...state,
-        coreValues: state.coreValues.filter((value) => value.id !== action.id),
-      };
-
-    case 'add_mission_item': {
-      const text = action.text.trim();
-
-      if (!text) {
-        return state;
-      }
-
-      const newItem: MissionItem = {
-        id: createId(),
-        category: action.category,
-        text,
-        isActive: true,
-        usedInCurrentRotation: false,
-      };
-
-      return {
-        ...state,
-        missionItems: [...state.missionItems, newItem],
-      };
-    }
-
-    case 'update_mission_item': {
-      const text = action.text.trim();
-
-      if (!text) {
-        return state;
-      }
-
-      return {
-        ...state,
-        missionItems: state.missionItems.map((item) =>
-          item.id === action.id ? { ...item, text } : item,
-        ),
-      };
-    }
-
-    case 'toggle_mission_item_active':
-      return {
-        ...state,
-        missionItems: state.missionItems.map((item) =>
-          item.id === action.id
-            ? {
-                ...item,
-                isActive: !item.isActive,
-                usedInCurrentRotation: item.isActive ? item.usedInCurrentRotation : false,
-              }
-            : item,
-        ),
-      };
-
-    case 'delete_mission_item':
-      return {
-        ...state,
-        missionItems: state.missionItems.filter((item) => item.id !== action.id),
-      };
-
-    case 'add_evidence': {
-      if (!state.activeCycle) {
-        return state;
-      }
-
-      const text = action.text?.trim();
-      const imageDataUrl = action.imageDataUrl?.trim();
-
-      if (!text && !imageDataUrl) {
-        return state;
-      }
-
-      const entry: EvidenceEntry = {
-        id: createId(),
-        createdAt: action.timestamp,
-        ...(text ? { text } : {}),
-        ...(imageDataUrl ? { imageDataUrl } : {}),
-      };
-
-      const evidence = state.activeCycle.evidence ?? createEmptyCycleEvidence();
-      const categoryEvidence = evidence[action.category] ?? [];
-
-      return {
-        ...state,
-        activeCycle: {
-          ...state.activeCycle,
-          evidence: {
-            ...evidence,
-            [action.category]: [entry, ...categoryEvidence],
-          },
-        },
-      };
-    }
-
-    case 'delete_evidence': {
-      if (!state.activeCycle) {
-        return state;
-      }
-
-      const evidence = state.activeCycle.evidence ?? createEmptyCycleEvidence();
-      const categoryEvidence = evidence[action.category] ?? [];
-
-      return {
-        ...state,
-        activeCycle: {
-          ...state.activeCycle,
-          evidence: {
-            ...evidence,
-            [action.category]: categoryEvidence.filter((entry) => entry.id !== action.evidenceId),
-          },
-        },
-      };
-    }
-
-    case 'complete_setup':
-      if (!hasMinimumSetup(state)) {
-        return state;
-      }
-
-      return {
-        ...state,
-        setupCompleted: true,
-      };
-
-    case 'start_cycle': {
-      const { startDate, endDate } = getCycleDates(action.timestamp);
-      const nextMissionItems = applySelectionToRotation(state.missionItems, action.selection);
-
-      return {
-        ...state,
-        setupCompleted: true,
-        missionItems: nextMissionItems,
-        activeCycle: {
-          id: createId(),
-          buildItemId: action.selection.build ?? '',
-          shapeItemId: action.selection.shape ?? '',
-          workWithItemId: action.selection.workWith ?? '',
-          intentions: {
-            build: action.intentions.build.trim(),
-            shape: action.intentions.shape.trim(),
-            workWith: action.intentions.workWith.trim(),
-          },
-          startDate,
-          endDate,
-          status: 'active',
-          evidence: createEmptyCycleEvidence(),
-        },
-      };
-    }
-
-    case 'mark_awaiting_reflection':
-      if (!state.activeCycle || state.activeCycle.status !== 'active') {
-        return state;
-      }
-
-      return {
-        ...state,
-        activeCycle: {
-          ...state.activeCycle,
-          status: 'awaiting_reflection',
-        },
-      };
-
-    case 'submit_reflection':
-      if (!state.activeCycle || !action.text.trim()) {
-        return state;
-      }
-
-      return {
-        ...state,
-        activeCycle: null,
-        history: [
-          buildHistoryCycle(state.activeCycle, state.missionItems, action.text, action.timestamp),
-          ...state.history,
-        ],
-      };
-
-    case 'delete_history_record':
-      return {
-        ...state,
-        history: state.history.filter((entry) => entry.id !== action.id),
-      };
-
-    case 'clear_all':
-      return createEmptyAppData();
-
-    default:
-      return state;
-  }
-}
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const [data, dispatch] = useReducer(appReducer, undefined, initialAppData);
   const [now, setNow] = useState(() => new Date());
-  const skipPersistRef = useRef(false);
+  const [persistenceNotice, setPersistenceNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60_000);
@@ -383,12 +85,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const state = deriveAppState(data, nowIso);
 
   useEffect(() => {
-    if (skipPersistRef.current) {
-      skipPersistRef.current = false;
-      return;
+    const result = saveAppData(data);
+    if (!result.ok) {
+      setPersistenceNotice(result.error ?? 'Could not save your latest changes.');
     }
-
-    saveAppData(data);
   }, [data]);
 
   useEffect(() => {
@@ -397,32 +97,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [data.activeCycle, state]);
 
-  const eligibleItems = {
-    build: getEligibleMissionItems(data.missionItems, 'build'),
-    shape: getEligibleMissionItems(data.missionItems, 'shape'),
-    workWith: getEligibleMissionItems(data.missionItems, 'workWith'),
-  };
-
-  const activeCycleItems = {
-    build: data.activeCycle
-      ? data.missionItems.find((item) => item.id === data.activeCycle?.buildItemId) ?? null
-      : null,
-    shape: data.activeCycle
-      ? data.missionItems.find((item) => item.id === data.activeCycle?.shapeItemId) ?? null
-      : null,
-    workWith: data.activeCycle
-      ? data.missionItems.find((item) => item.id === data.activeCycle?.workWithItemId) ?? null
-      : null,
-  };
+  const eligibleItems = useMemo(() => getEligibleItems(data), [data]);
+  const activeCycleItems = useMemo(() => getActiveCycleItems(data), [data]);
+  const pendingRecapCycle = useMemo(() => getPendingRecapCycle(data), [data]);
 
   const value: AppContextValue = {
     ...data,
     nowIso,
     state,
-    canEditModel: canEditFrameworkForState(state),
+    canEditFramework: canEditFrameworkForState(state),
     eligibleItems,
     activeCycleItems,
+    pendingRecapCycle,
     cycleMessage: getMessageForDate(nowIso),
+    persistenceNotice,
     addCoreValue: (text) =>
       dispatch({ type: 'add_core_value', text, timestamp: new Date().toISOString() }),
     updateCoreValue: (id, text) =>
@@ -448,8 +136,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addEvidence: (category, payload) => {
       const text = payload.text?.trim();
       const imageDataUrl = payload.imageDataUrl?.trim();
+      const attachment = payload.attachment;
 
-      if (!data.activeCycle || (!text && !imageDataUrl)) {
+      if (!data.activeCycle || (!text && !imageDataUrl && !attachment)) {
         return false;
       }
 
@@ -458,6 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         category,
         text,
         imageDataUrl,
+        attachment,
         timestamp: new Date().toISOString(),
       });
       return true;
@@ -491,11 +181,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     deleteHistoryRecord: (id) => dispatch({ type: 'delete_history_record', id }),
     clearAllData: () => {
-      skipPersistRef.current = true;
-      clearStoredAppData();
+      const result = clearStoredAppData();
+      if (!result.ok) {
+        setPersistenceNotice(result.error ?? 'Could not clear data.');
+        return false;
+      }
       dispatch({ type: 'clear_all' });
+      setPersistenceNotice(null);
+      return true;
     },
-    exportData: () => exportAppData(data),
+    exportBackup: () => {
+      const result = exportAppData(data);
+      if (!result.ok && !result.cancelled) {
+        setPersistenceNotice(result.error ?? 'Could not export your backup.');
+      }
+      return result.ok;
+    },
+    importBackup: () => {
+      const result = importAppData();
+      if (!('data' in result)) {
+        if (!('cancelled' in result) || !result.cancelled) {
+          setPersistenceNotice(
+            ('error' in result ? result.error : undefined) ?? 'Could not import that backup.',
+          );
+        }
+        return false;
+      }
+
+      dispatch({ type: 'replace_all', data: result.data });
+      setPersistenceNotice(null);
+      return true;
+    },
+    acknowledgeCompletedCycle: () => dispatch({ type: 'acknowledge_completed_cycle' }),
+    clearPersistenceNotice: () => setPersistenceNotice(null),
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

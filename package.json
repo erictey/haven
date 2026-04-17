@@ -15,7 +15,9 @@
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --dev\"",
     "electron:build": "tsc && vite build && electron-builder",
-    "electron:start": "electron ."
+    "electron:start": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "build": {
     "appId": "com.tey.haven",
@@ -42,14 +44,19 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.2.1",
     "electron": "^41.2.1",
     "electron-builder": "^26.8.1",
+    "jsdom": "^29.0.2",
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
+    "vitest": "^2.1.9",
     "wait-on": "^9.0.5"
   }
 }

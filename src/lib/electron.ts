@@ -1,3 +1,5 @@
+import type { EvidenceAttachment, MissionCategory } from './types';
+
 // Type-safe bridge to Electron APIs exposed via preload
 declare global {
   interface Window {
@@ -12,6 +14,17 @@ declare global {
       setAutostart: (enabled: boolean) => Promise<boolean>;
       getCloseToTray: () => Promise<boolean>;
       setCloseToTray: (enabled: boolean) => Promise<boolean>;
+      data?: {
+        load: () => string | null;
+        save: (raw: string) => { ok: boolean; error?: string };
+        export: (raw: string) => { ok: boolean; cancelled?: boolean; error?: string; path?: string };
+        import: () => { ok: boolean; cancelled?: boolean; error?: string; raw?: string };
+        clear: () => { ok: boolean; error?: string };
+        saveAttachment: (dataUrl: string, fileName?: string) => EvidenceAttachment | null;
+      };
+      onQuickJournal?: (
+        callback: (payload: { category?: MissionCategory }) => void,
+      ) => (() => void) | void;
     };
   }
 }
@@ -35,6 +48,14 @@ export function hasCloseToTrayApi() {
     typeof window !== 'undefined' &&
     typeof window.electronAPI?.getCloseToTray === 'function' &&
     typeof window.electronAPI?.setCloseToTray === 'function'
+  );
+}
+
+export function hasElectronDataApi() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.electronAPI?.data?.load === 'function' &&
+    typeof window.electronAPI?.data?.save === 'function'
   );
 }
 
@@ -76,4 +97,43 @@ export async function getCloseToTray() {
 
 export async function setCloseToTray(enabled: boolean) {
   return (await window.electronAPI?.setCloseToTray(enabled)) ?? false;
+}
+
+export function loadPersistedData() {
+  return window.electronAPI?.data?.load() ?? null;
+}
+
+export function savePersistedData(raw: string) {
+  return window.electronAPI?.data?.save(raw) ?? { ok: false, error: 'Persistence API unavailable' };
+}
+
+export function exportPersistedData(raw: string) {
+  return window.electronAPI?.data?.export(raw) ?? {
+    ok: false,
+    error: 'Export API unavailable',
+  };
+}
+
+export function importPersistedData() {
+  return window.electronAPI?.data?.import() ?? {
+    ok: false,
+    error: 'Import API unavailable',
+  };
+}
+
+export function clearPersistedData() {
+  return window.electronAPI?.data?.clear() ?? {
+    ok: false,
+    error: 'Clear API unavailable',
+  };
+}
+
+export function saveEvidenceAttachment(dataUrl: string, fileName?: string) {
+  return window.electronAPI?.data?.saveAttachment(dataUrl, fileName) ?? null;
+}
+
+export function subscribeToQuickJournal(
+  callback: (payload: { category?: MissionCategory }) => void,
+) {
+  return window.electronAPI?.onQuickJournal?.(callback);
 }

@@ -53,6 +53,13 @@ export function deriveAppState(data: AppData, nowIso: string): AppState {
   const cycleStatus = getLiveCycleStatus(data.activeCycle, nowIso);
 
   if (!cycleStatus) {
+    if (
+      data.pendingRecapCycleId &&
+      data.history.some((entry) => entry.id === data.pendingRecapCycleId)
+    ) {
+      return 'completed_cycle';
+    }
+
     return 'ready_to_select';
   }
 

@@ -1,7 +1,11 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { hasElectronDataApi, saveEvidenceAttachment } from '../lib/electron';
+import { getEvidenceImageSource } from '../lib/evidence';
 import type { EvidenceEntry } from '../lib/types';
+import type { EvidenceAttachment } from '../lib/types';
 
-const MAX_IMAGE_BYTES = 1_500_000;
+const MAX_FILE_BYTES = 1_000_000;
+const MAX_DATA_URL_BYTES = 1_400_000;
 
 function formatEvidenceTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -26,7 +30,7 @@ type Props = {
   missionText: string;
   entries: EvidenceEntry[];
   disabled?: boolean;
-  onAdd?: (payload: { text?: string; imageDataUrl?: string }) => boolean;
+  onAdd?: (payload: { text?: string; imageDataUrl?: string; attachment?: EvidenceAttachment }) => boolean;
   onDelete?: (evidenceId: string) => void;
 };
 
@@ -40,6 +44,7 @@ export function EvidenceColumn({
 }: Props) {
   const [draftText, setDraftText] = useState('');
   const [draftImage, setDraftImage] = useState<string>('');
+  const [draftAttachment, setDraftAttachment] = useState<EvidenceAttachment | null>(null);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const canEdit = Boolean(onAdd);
@@ -49,7 +54,7 @@ export function EvidenceColumn({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.size > MAX_IMAGE_BYTES) {
+    if (file.size > MAX_FILE_BYTES) {
       setError('Image too large. Use a smaller image.');
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -57,6 +62,20 @@ export function EvidenceColumn({
 
     try {
       const url = await fileToDataUrl(file);
+      if (url.length > MAX_DATA_URL_BYTES) {
+        setError('Image too large. Use a smaller image.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      if (hasElectronDataApi()) {
+        const attachment = saveEvidenceAttachment(url, file.name);
+        if (attachment) {
+          setDraftAttachment(attachment);
+          setDraftImage(attachment.fileUrl);
+          return;
+        }
+      }
+      setDraftAttachment(null);
       setDraftImage(url);
     } catch {
       setError('Could not read image.');
@@ -65,6 +84,7 @@ export function EvidenceColumn({
 
   const clearImage = () => {
     setDraftImage('');
+    setDraftAttachment(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -74,10 +94,11 @@ export function EvidenceColumn({
 
     const text = draftText.trim();
     const imageDataUrl = draftImage.trim();
+    const attachment = draftAttachment ?? undefined;
 
     const ok = onAdd({
       ...(text ? { text } : {}),
-      ...(imageDataUrl ? { imageDataUrl } : {}),
+      ...(attachment ? { attachment } : imageDataUrl ? { imageDataUrl } : {}),
     });
 
     if (!ok) {
@@ -151,8 +172,8 @@ export function EvidenceColumn({
             <article className="evidence-entry" key={entry.id}>
               <p className="date-copy">{formatEvidenceTime(entry.createdAt)}</p>
               {entry.text ? <p className="mission-text">{entry.text}</p> : null}
-              {entry.imageDataUrl ? (
-                <img alt="Evidence" className="evidence-image" src={entry.imageDataUrl} />
+              {getEvidenceImageSource(entry) ? (
+                <img alt="Evidence" className="evidence-image" src={getEvidenceImageSource(entry) ?? undefined} />
               ) : null}
               {onDelete ? (
                 <div className="action-row" style={{ justifyContent: 'flex-end' }}>
@@ -176,4 +197,3 @@ export function EvidenceColumn({
     </section>
   );
 }
-

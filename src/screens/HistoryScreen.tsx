@@ -1,17 +1,14 @@
 import { useState } from 'react';
-import { DataManagement } from '../components/DataManagement';
 import { EvidenceColumn } from '../components/EvidenceColumn';
 import { MissionCard } from '../components/MissionCard';
 import { useAppContext } from '../context/AppContext';
-import { downloadTextFile, makeExportFilename } from '../lib/storage';
+import { CATEGORY_LABELS, type MissionCategory } from '../lib/types';
 
 export function HistoryScreen() {
-  const { history, deleteHistoryRecord, exportData, clearAllData } = useAppContext();
+  const { history, deleteHistoryRecord } = useAppContext();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const handleExport = () => {
-    downloadTextFile(makeExportFilename(new Date()), exportData());
-  };
+  const [keyword, setKeyword] = useState('');
+  const [visibleCategory, setVisibleCategory] = useState<'all' | MissionCategory>('all');
 
   const handleDeleteRecord = (id: string) => {
     setDeletingId(id);
@@ -24,19 +21,148 @@ export function HistoryScreen() {
     }
   };
 
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const filteredHistory = history.filter((entry) => {
+    if (!normalizedKeyword) {
+      return true;
+    }
+
+    const searchableText = [
+      entry.buildText,
+      entry.shapeText,
+      entry.workWithText,
+      entry.reflection.text,
+      ...entry.evidence.build.map((item) => item.text ?? ''),
+      ...entry.evidence.shape.map((item) => item.text ?? ''),
+      ...entry.evidence.workWith.map((item) => item.text ?? ''),
+      new Date(entry.startDate).toLocaleDateString(),
+      new Date(entry.endDate).toLocaleDateString(),
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    return searchableText.includes(normalizedKeyword);
+  });
+
   return (
     <section className="screen stack-xl">
       <header className="panel hero-panel animate-slide-up">
         <p className="eyebrow">History</p>
         <h2>Your Journey So Far</h2>
         <p className="screen-copy">
-          Every week you complete is saved here. Past reflections stay readable even if you change your focuses later.
+          Every week you complete is saved here. Search by keyword or narrow the view to one category to revisit what changed over time.
         </p>
       </header>
 
+      <section className="panel stack-md animate-slide-up history-toolbar" style={{ animationDelay: '0.04s' }}>
+        <div className="section-header">
+          <div>
+            <p className="eyebrow">Browse Timeline</p>
+            <h3>Filter your history</h3>
+          </div>
+          <p className="section-copy">
+            Search reflections, focus titles, evidence notes, or dates. Use the category filter to collapse each week down to one lens.
+          </p>
+        </div>
+
+        <div className="form-row history-filters">
+          <input
+            className="text-input"
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder="Search by week, keyword, or reflection text"
+            value={keyword}
+          />
+          <select
+            className="text-input"
+            onChange={(event) =>
+              setVisibleCategory(event.target.value as 'all' | MissionCategory)
+            }
+            value={visibleCategory}
+          >
+            <option value="all">All categories</option>
+            <option value="build">Build only</option>
+            <option value="shape">Shape only</option>
+            <option value="workWith">Work With only</option>
+          </select>
+        </div>
+      </section>
+
       <section className="stack-lg stagger-in">
-        {history.length > 0 ? (
-          history.map((entry, index) => (
+        {filteredHistory.length > 0 ? (
+          filteredHistory.map((entry, index) => {
+            const missionCards =
+              visibleCategory === 'all'
+                ? [
+                    <MissionCard key="build" text={entry.buildText} title="Build" category="build" />,
+                    <MissionCard key="shape" text={entry.shapeText} title="Shape" category="shape" />,
+                    <MissionCard
+                      key="workWith"
+                      text={entry.workWithText}
+                      title="Work With"
+                      category="workWith"
+                    />,
+                  ]
+                : [
+                    <MissionCard
+                      category={visibleCategory}
+                      key={visibleCategory}
+                      text={
+                        visibleCategory === 'build'
+                          ? entry.buildText
+                          : visibleCategory === 'shape'
+                            ? entry.shapeText
+                            : entry.workWithText
+                      }
+                      title={CATEGORY_LABELS[visibleCategory]}
+                    />,
+                  ];
+
+            const evidenceColumns =
+              visibleCategory === 'all'
+                ? [
+                    entry.evidence.build.length > 0 ? (
+                      <EvidenceColumn
+                        entries={entry.evidence.build}
+                        key="evidence-build"
+                        missionText={entry.buildText}
+                        title="Build"
+                      />
+                    ) : null,
+                    entry.evidence.shape.length > 0 ? (
+                      <EvidenceColumn
+                        entries={entry.evidence.shape}
+                        key="evidence-shape"
+                        missionText={entry.shapeText}
+                        title="Shape"
+                      />
+                    ) : null,
+                    entry.evidence.workWith.length > 0 ? (
+                      <EvidenceColumn
+                        entries={entry.evidence.workWith}
+                        key="evidence-workWith"
+                        missionText={entry.workWithText}
+                        title="Work With"
+                      />
+                    ) : null,
+                  ]
+                : entry.evidence[visibleCategory].length > 0
+                  ? [
+                      <EvidenceColumn
+                        entries={entry.evidence[visibleCategory]}
+                        key={`evidence-${visibleCategory}`}
+                        missionText={
+                          visibleCategory === 'build'
+                            ? entry.buildText
+                            : visibleCategory === 'shape'
+                              ? entry.shapeText
+                              : entry.workWithText
+                        }
+                        title={CATEGORY_LABELS[visibleCategory]}
+                      />,
+                    ]
+                  : [];
+
+            return (
             <article
               className="panel history-card"
               key={entry.id}
@@ -77,34 +203,12 @@ export function HistoryScreen() {
                 )}
               </div>
               <div className="mission-grid">
-                <MissionCard text={entry.buildText} title="Build" category="build" />
-                <MissionCard text={entry.shapeText} title="Shape" category="shape" />
-                <MissionCard text={entry.workWithText} title="Work With" category="workWith" />
+                {missionCards}
               </div>
 
-              {Object.values(entry.evidence).some((list) => list.length > 0) ? (
+              {evidenceColumns.length > 0 ? (
                 <div className="mission-grid" style={{ marginTop: '16px' }}>
-                  {entry.evidence.build.length > 0 ? (
-                    <EvidenceColumn
-                      entries={entry.evidence.build}
-                      missionText={entry.buildText}
-                      title="Build"
-                    />
-                  ) : null}
-                  {entry.evidence.shape.length > 0 ? (
-                    <EvidenceColumn
-                      entries={entry.evidence.shape}
-                      missionText={entry.shapeText}
-                      title="Shape"
-                    />
-                  ) : null}
-                  {entry.evidence.workWith.length > 0 ? (
-                    <EvidenceColumn
-                      entries={entry.evidence.workWith}
-                      missionText={entry.workWithText}
-                      title="Work With"
-                    />
-                  ) : null}
+                  {evidenceColumns}
                 </div>
               ) : null}
               <section className="reflection-note">
@@ -120,17 +224,18 @@ export function HistoryScreen() {
                 </p>
               </section>
             </article>
-          ))
+            );
+          })
         ) : (
           <div className="panel empty-state animate-fade-in">
-            <p>No completed weeks yet. Once you finish your first week and reflect, it'll show up here.</p>
+            <p>
+              {history.length === 0
+                ? 'No completed weeks yet. Once you finish your first week and reflect, it will show up here.'
+                : 'No weeks match that filter yet. Try a broader category or clear the keyword.'}
+            </p>
           </div>
         )}
       </section>
-
-      <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-        <DataManagement historyCount={history.length} onClear={clearAllData} onExport={handleExport} />
-      </div>
     </section>
   );
 }
